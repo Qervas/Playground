@@ -88,5 +88,7 @@ public  interface BigInt {
 	String toString();
 
 	public void foo(String input);//用来调用调试
+	public LinkedList<Byte> sameSign(Byte[] longerArray,Byte[] shorterArray);
+	public LinkedList<Byte> difSign(Byte[] longerArray,Byte[] shorterArray);
 	
 }
