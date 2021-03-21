@@ -12,7 +12,8 @@ public  interface BigInt {
 	
 	public enum Sign {
 		POSITIVE, NEGATIVE;
-	};
+	}
+	Object numbers = null;;
 	/**
 	 * 高精度整数加法，将整数bInt与当前整数相加，
 	 * 并将结果作为一个新的BitInt类型整数返回，
@@ -87,9 +88,9 @@ public  interface BigInt {
 	 */
 	String toString();
 
-	public void foo(String input);//用来调用调试
 	public LinkedList<Byte> sameSign(Byte[] largerArray,Byte[] smallerArray);
 	public LinkedList<Byte> difSign(Byte[] largerArray,Byte[] smallerArray);
 	public void setLinkList(LinkedList<Byte> list);
 	public byte compareGetBiggerAbs(Byte[] A, Byte[] B);	
+	public Byte[] toPrintValue();
 }

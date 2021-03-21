@@ -8,9 +8,16 @@ import java.util.LinkedList;
 
 public class BigInteger implements BigInt {
 
-    // public LinkedList<Byte> numbers = new LinkedList<Byte>();
+	@Override
+	public String toString() {
+		String str = "";
+		for(Byte x : this.toPrintValue()){
+			str += x;
+		}
+		return str;
+	}
 	//================constructors============================
-	pulbic BigInteger(){}
+	 BigInteger(){}
 	public BigInteger(String integer) {
 		if(integer.charAt(0) == '+'){setSign(Sign.POSITIVE);integer = integer.substring(1);}
 		else if(integer.charAt(0) == '-'){setSign(Sign.NEGATIVE);integer = integer.substring(1);}
@@ -21,7 +28,6 @@ public class BigInteger implements BigInt {
             numbers.add(((byte)(integer.charAt(i) - '0')));
         }
 		setBit(numbers.size());
-		foo(integer);
 	}
 	
 	public BigInteger(Long integer) {
@@ -42,10 +48,6 @@ public class BigInteger implements BigInt {
 		int shorterLength = (largerArray.length < smallerArray.length ? largerArray.length : smallerArray.length);	
 		//Start to compute
 		for(int i = 0; i < longerLength; i++){
-			/*
-			complete unsigned add(),
-			require signed add
-			*/
                 if(i < shorterLength){//add corresponding each digit 
                     tempSum = (byte)(largerArray[i] + smallerArray[i]);
                     nextCarry = (byte) (tempSum/10);
@@ -113,7 +115,7 @@ public class BigInteger implements BigInt {
 		System.out.println("answer: " + answer);
 		System.out.println("lastCarry: " + lastCarry + " nextCarry: "  + nextCarry + " single: " + single);
 		System.out.println("longerLength: " + longerLength + " shorterLength: " + shorterLength);
-		return null;
+		return answer;
 	}
 
 	@Override
@@ -123,16 +125,15 @@ public class BigInteger implements BigInt {
 		System.out.println("flag: " + flag);
 		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); //former array is larger
 		Byte[] smallerArray = ( flag == -1 ? bInt.getValue() : this.getValue());
+		BigInt answer = new BigInteger();
 		if(this.getSign() == bInt.getSign()){
-			difSign(largerArray,smallerArray);
+			answer.setLinkList(difSign(largerArray,smallerArray));
 		}
 		else if(this.getSign() != bInt.getSign()){
-			if(flag == 0){ return null;}
-			sameSign(largerArray,smallerArray);
+			if(flag == 0){ answer.add(0);}
+			answer.setLinkList(sameSign(largerArray,smallerArray));
 		}
-		//Preparation for signed calculation
-
-		return null;
+		return answer;
 	}
 	@Override
 	public BigInt sub(BigInt bInt) {
@@ -140,39 +141,39 @@ public class BigInteger implements BigInt {
 		byte flag = compareGetBiggerAbs(this.getValue(), bInt.getValue());
 		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); //longer array
 		Byte[] smallerArray = ( flag == -1 ? bInt.getValue() : this.getValue());
+		BigInt answer = new BigInteger();
 		if(this.getSign() == bInt.getSign()){
-			difSign(largerArray, smallerArray);
+			answer.setLinkList(difSign(largerArray, smallerArray));
 		}
 		else if(this.getSign() != bInt.getSign()){
 			if(flag == 0){return null;}
-			sameSign(largerArray,smallerArray);
+			answer.setLinkList(sameSign(largerArray,smallerArray));
 		}
-		//the sign of final answer decided by the longerArray
-		return null;
+		return answer;
 	}
 
 	@Override
 	public BigInt add(long bLong) {
-		// TODO Auto-generated method stub
-		return null;
+		BigInt other = new BigInteger(Long.toString(bLong));
+		return this.add(other);
 	}
 
 	@Override
 	public BigInt sub(long bLong) {
-		// TODO Auto-generated method stub
-		return null;
+		BigInt other = new BigInteger(Long.toString(bLong));
+		return this.sub(other);
 	}
 
 	@Override
 	public BigInt add(int bInt) {
-		// TODO Auto-generated method stub
-		return null;
+		BigInt other = new BigInteger(Integer.toString(bInt));
+		return this.add(other);
 	}
 
 	@Override
 	public BigInt sub(int bInt) {
-		// TODO Auto-generated method stub
-		return null;
+		BigInt other = new BigInteger(Integer.toString(bInt));
+		return this.sub(other);
 	}
 
 	@Override
@@ -203,6 +204,15 @@ public class BigInteger implements BigInt {
 	}
 
 	@Override
+	public Byte[] toPrintValue(){
+		Byte[] toPrint = new Byte[numbers.size()];
+		for (int i = 0; i < numbers.size(); i++){
+			toPrint[numbers.size() - i - 1] = numbers.get(i);
+		}
+		return toPrint;
+
+	}
+	@Override
 	public void setBit(int bit) { //set how many digits according to the input
 		this.bit = bit;
 	}
@@ -212,14 +222,6 @@ public class BigInteger implements BigInt {
 		return bit;
 	}
 	
-	@Override
-	public void foo(String input){
-		System.out.printf("\n>>>foo(): \ninput: %s, LinkedList:",input);
-		System.out.println(numbers);
-		System.out.println("Sign(F-neg,T-pos):" + isPositive());
-		getValue();
-		
-	}
 	@Override
 	public byte compareGetBiggerAbs(Byte[] A, Byte[] B) {//-1: A, 1: B, 0: the same
 		if(A.length != B.length){
@@ -236,6 +238,6 @@ public class BigInteger implements BigInt {
 	@Override
 	public void setLinkList(LinkedList<Byte> list) {
 		this.numbers = list;
-		
 	}
+
 }
