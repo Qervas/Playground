@@ -62,59 +62,58 @@ public class BigInteger implements BigInt {
 	//============member functions========================
 	@Override
 	public LinkedList<Byte> sameSign(Byte[] largerArray, Byte[] smallerArray) {
-		// System.out.println(">>>sameSign()");
+		//Every time add by bit, the carry from last addition(lastCarry), possible carry on next digit(nextCarry) and the temporary sum for the two single digits(tempSum), the final digit remaining on the position(single) 
         byte lastCarry = 0, nextCarry = 0, tempSum = 0, single = 0;
 		LinkedList<Byte> answer = new LinkedList<Byte>();
-		int longerLength = (largerArray.length > smallerArray.length ? largerArray.length : smallerArray.length);
-		int shorterLength = (largerArray.length < smallerArray.length ? largerArray.length : smallerArray.length);	
+		//2 situation: different and same length for the two arrays 
+		int longerLength = (largerArray.length > smallerArray.length ? largerArray.length : smallerArray.length);//get the longer length of the arrays
+		int shorterLength = (largerArray.length < smallerArray.length ? largerArray.length : smallerArray.length);//get the shorter length of the arrays
 		//Start to compute
 		for(int i = 0; i < longerLength; i++){
-                if(i < shorterLength){//add corresponding each digit 
-                    tempSum = (byte)(largerArray[i] + smallerArray[i]);
-                    nextCarry = (byte) (tempSum/10);
-                    single = (byte) (tempSum%10);
-                    if(lastCarry + single >= 10){ //carry from last round
-                        tempSum = (byte) (lastCarry + single);
-                        single = (byte) (tempSum%10);
-                        nextCarry = (byte) (nextCarry + tempSum/10);
-
+                if(i < shorterLength){//in this condition,add corresponding for each digit 
+                    tempSum = (byte)(largerArray[i] + smallerArray[i]); //temporary sum on each digit
+                    nextCarry = (byte) (tempSum/10);					//the carry for the next digit 
+                    single = (byte) (tempSum%10);						
+                    if(lastCarry + single >= 10){ //sum(of carry from last round and current single digit number) has new carry
+                        tempSum = (byte) (lastCarry + single); 			//update the temporary sum value
+                        single = (byte) (tempSum%10);					//update the single digit value
+                        nextCarry = (byte) (nextCarry + tempSum/10);	//update the next carry value
                     }
-                    else {
-                        single = (byte) (single + lastCarry);
+                    else {//(single) + (lastCarry) < 10
+                        single = (byte) (single + lastCarry);			//update the single digit value
                     }
-                    lastCarry = nextCarry;
-                    answer.add(single);
-                    single = 0;
-                    nextCarry = 0;
+					//prepare for the next round
+                    lastCarry = nextCarry;								//the nextCarry(this round) will be the lastCarry(next round)
+                    answer.add(single);									//add the final version of single digit value to the "answer" LinkedList
+                    single = 0;											//reset the value
+                    nextCarry = 0;										//reset the value
                 }
-                else{
-                    answer.add((byte) (largerArray[i] + lastCarry));
-                    lastCarry = 0;
+                else{//two arrays have different length
+                    answer.add((byte) (largerArray[i] + lastCarry));	//there's might be one carry need to process
+                    lastCarry = 0;										//reset the last round carry value
                 }
-			
 		}
-		if(shorterLength == longerLength && lastCarry != 0){answer.add(lastCarry);}
+		if(shorterLength == longerLength && lastCarry != 0){answer.add(lastCarry);}//for this special condition, one digit should be added and the number gets +1 number of digits
 		return answer;
 	}
 	@Override
 	public LinkedList<Byte> difSign(Byte[] largerArray, Byte[] smallerArray){
 
-		// System.out.println(">>>difSign()" + smallerArray.length);
         byte lastCarry = 0, nextCarry = 0, tempSum = 0, single = 0;
 		LinkedList<Byte> answer = new LinkedList<Byte>();
 		int longerLength = (largerArray.length > smallerArray.length ? largerArray.length : smallerArray.length);
 		int shorterLength = (largerArray.length < smallerArray.length ? largerArray.length : smallerArray.length);	
 		for(int i = 0; i < longerLength; i++){//Start to compute
 			if(i < shorterLength){
-				tempSum = (byte)(largerArray[i] - smallerArray[i]);
+				tempSum = (byte)(largerArray[i] - smallerArray[i]);//subtraction
 				if(tempSum  + lastCarry< 0){
-					nextCarry = -1;
-					single = (byte) (10 + tempSum + lastCarry);
+					nextCarry = -1;								   //the carry is negative now
+					single = (byte) (10 + tempSum + lastCarry);	   //ensure the single digit value is positive
 				}
 				else{
-					single = (byte) (tempSum + lastCarry);
+					single = (byte) (tempSum + lastCarry);		   //(single) is non-negative 
 				}
-
+				//update values
 				lastCarry = nextCarry;
 				answer.add(single);	
 				nextCarry = 0;
@@ -124,7 +123,7 @@ public class BigInteger implements BigInt {
 			else{
 				if(largerArray[i] + lastCarry != 0){
 					if(largerArray[i] + lastCarry < 0){
-						answer.add((byte) (largerArray[i] + lastCarry + 10));//bug fixed
+						answer.add((byte) (largerArray[i] + lastCarry + 10));
 						lastCarry = -1;
 					}
 					else{
@@ -140,26 +139,23 @@ public class BigInteger implements BigInt {
 
 	@Override
 	public BigInt add(BigInt bInt) {
-		// System.out.println(">>>add()");
-		byte flag = compareGetBiggerAbs(this.getValue(), bInt.getValue());
-		// System.out.println("flag: " + flag);
-		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); //former array is larger
-		Byte[] smallerArray = ( flag == -1 ? bInt.getValue() : this.getValue());
-		BigInt answer = new BigInteger();
-		if(this.getSign() == bInt.getSign()){
-			answer.setLinkList(sameSign(largerArray,smallerArray));
+		byte flag = compareGetBiggerAbs(this.getValue(), bInt.getValue());		//get which number is bigger(or they're eqaul)
+		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); //get the value from the larger array
+		Byte[] smallerArray = ( flag == -1 ? bInt.getValue() : this.getValue());//get the value from the smaller array
+		BigInt answer = new BigInteger();										//instantiate an object with default value
+		if(this.getSign() == bInt.getSign()){									//same sign addition
+			answer.setLinkList(sameSign(largerArray,smallerArray));				//get the output from addition and put into "answer" 
 		}
-		else if(this.getSign() != bInt.getSign()){
-			if(flag == 0){ answer.add(0);}
-			answer.setLinkList(difSign(largerArray,smallerArray));
+		else if(this.getSign() != bInt.getSign()){								//different sign subtraction
+			if(flag == 0){answer.add(0);}										//when their absolute values are equal, the answer is zero
+			answer.setLinkList(difSign(largerArray,smallerArray));				//get the output from addition and put into "answer"
 		}
-		return answer;
+		return answer;															//return the "answer" LinkedList
 	}
 	@Override
-	public BigInt sub(BigInt bInt) {
-		// System.out.println(">>>sub(): this: " + this.numbers + "");
+	public BigInt sub(BigInt bInt) {//it's dual to the add()
 		byte flag = compareGetBiggerAbs(this.getValue(), bInt.getValue());
-		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); //longer array
+		Byte[] largerArray = ( flag == -1 ? this.getValue() : bInt.getValue()); 
 		Byte[] smallerArray = ( flag == -1 ? bInt.getValue() : this.getValue());
 		BigInt answer = new BigInteger();
 		if(this.getSign() == bInt.getSign()){
@@ -173,31 +169,31 @@ public class BigInteger implements BigInt {
 	}
 
 	@Override
-	public BigInt add(long bLong) {
+	public BigInt add(long bLong) {//Type conversion: long --> String
 		BigInt other = new BigInteger(Long.toString(bLong));
 		return this.add(other);
 	}
 
 	@Override
-	public BigInt sub(long bLong) {
+	public BigInt sub(long bLong) {//Type conversion: long --> String
 		BigInt other = new BigInteger(Long.toString(bLong));
 		return this.sub(other);
 	}
 
 	@Override
-	public BigInt add(int bInt) {
+	public BigInt add(int bInt) {//Type conversion: int --> String
 		BigInt other = new BigInteger(Integer.toString(bInt));
 		return this.add(other);
 	}
 
 	@Override
-	public BigInt sub(int bInt) {
+	public BigInt sub(int bInt) {//Type conversion: int --> String
 		BigInt other = new BigInteger(Integer.toString(bInt));
 		return this.sub(other);
 	}
 
 	@Override
-	public boolean isPositive() {
+	public boolean isPositive() {//whether the number is positive
 		if(getSign() == Sign.POSITIVE){
 			return true;
 		}
@@ -205,17 +201,17 @@ public class BigInteger implements BigInt {
 	}
 
 	@Override
-	public Sign getSign() {
+	public Sign getSign() {//get the sign
 		return this.sign;
 	}
 
 	@Override
-	public void setSign(Sign sign) {
+	public void setSign(Sign sign) {//set the sign
 		this.sign = sign;
 	}
 
 	@Override
-	public Byte[] getValue() {
+	public Byte[] getValue() {	//get the value as a Byte[] array without operate on the member variable directly
 		Byte[] value = new Byte[numbers.size()];
 		for(int x = 0; x < numbers.size(); x++){
 			value[x] = numbers.get(x);
@@ -224,7 +220,7 @@ public class BigInteger implements BigInt {
 	}
 
 	@Override
-	public Byte[] toPrintValue(){
+	public Byte[] toPrintValue(){	//inverse the order(the original is from low to high as the index from 0 to n) 
 		Byte[] toPrint = new Byte[numbers.size()];
 		for (int i = 0; i < numbers.size(); i++){
 			toPrint[numbers.size() - i - 1] = numbers.get(i);
