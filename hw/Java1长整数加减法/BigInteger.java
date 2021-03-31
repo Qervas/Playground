@@ -1,47 +1,64 @@
-//package cn.edu.bistu.cs;
-/**
- * @author 
- *
- */
 import java.util.LinkedList;
-
-
+/*=======Function Overview==================Brief Instruction===============
+*String toString()				||override the default toString()method
+*BigInter()						||empty parameter constructor
+*BigInteger(String)				||tranfer a String to a LinkedList and set how many of its digits
+*BigInteger(Long)				||use Long-->String and call the former constructor
+*BigInt sameSign(Byte[], Byte[])||same sign addition and subtraction
+*BigInt difSign(Byte[], Byte[]) ||different sign addition and subtraction
+*BigInt add(BigInt)				||addition
+*BigInt sub(BigInt)				||subtraction
+*BigInt add(long)				||addition
+*BigInt sub(long)				||subtraction
+*BigInt add(int)				||addition
+*BigInt sub(int)				||subtraction
+*boolean isPositive()	s		||whether the number is positive
+*Sign getSign()					||get the sign(+ or -) of the number
+*void setSign(Sign)				||a sign assignment method
+*Byte[] getValue()				||get the value of the number as a byte-array
+*int getBit();					||get the number of digits
+*void setLinkList(LinkedList<Byte> list)  ||a LinkedList assignment method 
+*byte compareGetBiggerAbs(Byte[], Byte[]) ||compare two number and distinguish the one has larger absolute value
+*toPrintValue()					||averse the order of digits before toString() method 
+*
+*/
 public class BigInteger implements BigInt {
-
 	@Override
-	public String toString() {
-		boolean Question2 = false;
-		String str = "";
+	public String toString() {//override the toString() method when the system print method calling BigInt 
+		boolean Question2 = true, checkZero = true; //"Question2" is for printing with comma(,); "checkZero" is for checking whether the value is zero or not 
+		String str = ""; //initial a string to return to the system print method
 		for(int i = 0; i < this.getValue().length; i++){
-			if(Question2 && (i-1)%3 == 0){str += ',';}//for Question 3.2
-				str += this.toPrintValue()[i];
+			if(this.toPrintValue()[i] != 0){checkZero = false;}//if all digits are 0, it should print as "0", not "0,000" kind.
+			if(Question2 && i%3 == 0){str += ',';}//for Question:"Print with the comma every 3 digits"
+				str += this.toPrintValue()[i];    //add the digit to the output string(call the toString() method in background)
 		}
-		return str;
+		if(checkZero == true){str = "0";}		  //all digits are "0"
+		if(str.charAt(0) == ','){str = str.substring(1);}//since the method of comma divide may have one comma at the front of the string
+		return str;	
 	}
 	//================constructors============================
-	 BigInteger(){}
+	BigInteger(){} //to instantiate an object with default values
 	public BigInteger(String integer) {
+		//divide the sign from the string and set the sign
 		if(integer.charAt(0) == '+'){setSign(Sign.POSITIVE);integer = integer.substring(1);}
 		else if(integer.charAt(0) == '-'){setSign(Sign.NEGATIVE);integer = integer.substring(1);}
-		else if('0' <= integer.charAt(0) && integer.charAt(0) <= '9'){setSign(Sign.POSITIVE);}
+		else if('0' <= integer.charAt(0) && integer.charAt(0) <= '9'){setSign(Sign.POSITIVE);}//input number without sign also treats as a positive one
 		
+		//put each character into the list backwards
         for(int i = integer.length() - 1; i >=0; i--){
-			if(integer.charAt(i) == ','){continue;}
+			if(integer.charAt(i) == ','){continue;}//skip commas
             numbers.add(((byte)(integer.charAt(i) - '0')));
         }
-		setBit(numbers.size());
+		setBit(numbers.size());//set the number of the digits. It's useful when comparing the value
 	}
-	
 	public BigInteger(Long integer) {
-		// System.out.println("afterlife: " + Long.toString(integer));
 		this(Long.toString(integer));
-
 	}
 	//=============member variables======================
-	public LinkedList<Byte> numbers = new LinkedList<Byte>();
+	public LinkedList<Byte> numbers = new LinkedList<Byte>();//store each digit of the input number
 	Sign sign; //Pos-1, Neg-0 
 	int bit;//count how many digits
-
+	
 	//============member functions========================
 	@Override
 	public LinkedList<Byte> sameSign(Byte[] largerArray, Byte[] smallerArray) {
@@ -213,7 +230,6 @@ public class BigInteger implements BigInt {
 			toPrint[numbers.size() - i - 1] = numbers.get(i);
 		}
 		return toPrint;
-
 	}
 	@Override
 	public void setBit(int bit) { //set how many digits according to the input
@@ -221,16 +237,18 @@ public class BigInteger implements BigInt {
 	}
 
 	@Override
-	public int getBit() { //getter
+	public int getBit() { //getter for number of digits
 		return bit;
 	}
 	
 	@Override
-	public byte compareGetBiggerAbs(Byte[] A, Byte[] B) {//-1: A, 1: B, 0: the same
+	public byte compareGetBiggerAbs(Byte[] A, Byte[] B) {//return value >> -1--> A's bigger; 1--> B's bigger; 0--> equal
+		//easy for those who have different number of digits
 		if(A.length != B.length){
-			return (byte) (A.length > B.length ? -1 : 1);
+			return (byte) (A.length > B.length ? -1 : 1); //the longer, the bigger
 		}
 		else{
+			//From high position to low position, the one, which first digit more than the other, is big.
 			for(int i = A.length-1; i > 0; i--){
 				if(A[i] > B[i]){return -1;}
 				else if(A[i] < B[i]){return 1;}
@@ -239,7 +257,7 @@ public class BigInteger implements BigInt {
 		return 0;
 	}
 	@Override
-	public void setLinkList(LinkedList<Byte> list) {
+	public void setLinkList(LinkedList<Byte> list) {//A LinkedList assignment method
 		this.numbers = list;
 	}
 

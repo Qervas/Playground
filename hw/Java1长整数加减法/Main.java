@@ -16,9 +16,23 @@ public class Main {
 	public static void main(String[] args) {
 
 		System.out.println("\nWelcome!");
-		BigInt aInt = new BigInteger("111,111,111,000,000,000");
-		BigInt bInt = new BigInteger(111111000L);
-		BigInt result = bInt.add(aInt.add(new BigInteger("111")));
-		System.out.println(result);
+		Scanner in = new Scanner(System.in);
+		BigInt a,b,result;
+		String aInt, bInt,sign;
+		while(true){
+			aInt = in.nextLine();
+			bInt = in.nextLine();
+			a = new BigInteger(aInt);
+			b = new BigInteger(bInt);
+		    sign = in.nextLine();
+			if(sign.charAt(0) == '+'){
+				result = a.add(b);
+			}
+			else if(sign.charAt(0) == '-'){
+				result = a.sub(b);
+			}
+			else{continue;}
+			System.out.println(result);
+		}
 	}
 }
