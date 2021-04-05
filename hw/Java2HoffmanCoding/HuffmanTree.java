@@ -1,16 +1,14 @@
 import java.text.CollationElementIterator;
-
 import java.util.*;
-
 public class HuffmanTree {
 	public static boolean DEBUG_INFO = false;
 	public static class Node implements Comparable<Node>{
-		Character _data;
-		int _weight;
-		Node left;
-		Node right;
-		public Node(){/*空节点构造*/}
-		public Node(Character data, int weight){
+		Character _data = '\0';
+		int _weight = 0;
+		Node left = null;
+		Node right = null;
+		public Node(){}//默认空构造函数
+		public Node(Character data, int weight){//含参构造
 			this._data = data;
 			this._weight = weight;
 		}
@@ -20,11 +18,9 @@ public class HuffmanTree {
 		}
 		@Override
 		public String toString() {
-			return "{ " + _data + " >>> " + _weight + "}\n";
+			return "{ " + _data + " >>> " + _weight + "}";
+		}
 	}
-
-	}
-
 	// =================================================================
 	public static List<Node> toList(String text){
 		Map<Character,Integer> countMap = new HashMap<Character,Integer>();//建立Map对象，用于返回
@@ -57,46 +53,81 @@ public class HuffmanTree {
 			Collections.sort(groot);
 			Node left = groot.get(groot.size() - 1);
 			Node right = groot.get(groot.size() - 2);
-			Node parent = new Node('*', left._weight + right._weight);
+			Node parent = new Node(null, left._weight + right._weight);//set "*" as the data of each parent node
 			parent.left = left;
 			parent.right = right;
 			groot.remove(groot.size()-1);//extract-min
 			groot.remove(groot.size()-1);//extract-min
 			groot.add(parent);
 		}
-		System.out.println(groot);
-		// return null;
+		// System.out.println(groot);
 		return groot.get(0);
 	}
-	
-
-
-	public static void inOrderTraverse(Node node) {
-       Queue queue = new ArrayDeque<Node>();
-        List<Node> list = new ArrayList<Node>();
-        if(node != null) {
-            queue.offer(node);
-        }
-          while(!queue.isEmpty()){  
-                //将该队列的队尾元素加入到list中  
-                list.add((Node) queue.peek());  
-                Node p = (Node) queue.poll();  
-
-                //如果左子节点不为null，将它加入到队列  
-                if(p.left != null){  
-                    queue.offer(p.left);  
-                }  
-
-                //如果右子节点不为null，将它加入到队列  
-                if(p.right != null){  
-                    queue.offer(p.right);  
-                }  
-            }        
-			for(int i = 0; i < list.size(); i++) {
-				System.out.println("data:"+list.get(i)._data + " weight:"+list.get(i)._weight);
-			}
-            return ;  
+	// =========================Coding part=======================================
+	public static String[] dic = new String[256]; //ASCII Dictionary for coding characters
+	public static ArrayList<Character> memorandum = new ArrayList<Character>();//备忘录用来记录遍历过程
+	public static int i = 0; 
+	public static void DFS(Node root){
+		// System.out.println("memorandum: " + memorandum + " i: " + (++i));
+		if(root._data != null){dic[(int)root._data] = memorandum.toString(); return ;} //叶子节点,把备忘录内容写入编码字典,倒着存
+		if(root.left != null){
+			memorandum.add('0');
+			DFS(root.left);
+			memorandum.remove((memorandum.size()-1)); 
 		}
+		if(root.right != null){
+			memorandum.add('1');
+			DFS(root.right);
+			memorandum.remove(memorandum.size()-1);
+		}
+	}
+	public static void checkDic(){
+		int i = 0;
+		for(int x = 0; x < dic.length ; x++){
+			if(dic[x] !=  null){
+				i++;
+			System.out.printf("%c:  %s \n",x, dic[x]);
+			}
+		}
+		System.out.println("编码组数 = " + i);
+	}
+	public static ArrayList<String> encode(String data){
+		ArrayList<String> code = new ArrayList<>();
+		for(int i = 0; i < data.length(); i++){
+			
+			code.add(dic[(int)data.charAt(i)]);
+		}
+		String display = new String();
+		for(String x : code){
+			display += x;
+		}
+		// System.out.println(code);
+
+		// System.out.println(display);
+
+		return code;
+	}
+	public static String decode(ArrayList<String> code, Node root){
+		String data = new String();
+		Node retriveNode = new Node();
+		int i;
+		retriveNode = root;
+		System.out.println(code.get(1));
+		// for(int j = 0; j < code.size(); j++){
+		// 	retriveNode = root;
+		// 	for(i = 0; i < code.get(j).length(); i++){
+		// 		if(code.get(j).charAt(i) == '0'){
+		// 			// retriveNode = retriveNode.left;
+		// 		}
+		// 		if(code.get(j).charAt(i) == '1'){
+		// 			// retriveNode = retriveNode.right;
+		// 		}
+		// 	}
+		// 	// data += retriveNode._data;
+		// }
+		return null;
+	}
+
 	public static void main(String[] args){
 		System.out.println();
 		String data = "In computer science and information theory, "
@@ -112,8 +143,9 @@ public class HuffmanTree {
 				+ "although optimal among methods encoding symbols separately, Huffman coding is not always optimal among all compression methods.";
 		List<Node> chars = HuffmanTree.toList(data);
 		Node receiver = HuffmanTree.toGroot(chars);
-		// HuffmanTree.inOrderTraverse(receiver);
-		
+		HuffmanTree.DFS(receiver);
+		// HuffmanTree.checkDic();
+		HuffmanTree.decode(HuffmanTree.encode(data), receiver);
 		
 		
 	}
