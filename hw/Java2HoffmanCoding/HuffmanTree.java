@@ -53,7 +53,7 @@ public class HuffmanTree {
 			Collections.sort(groot);
 			Node left = groot.get(groot.size() - 1);
 			Node right = groot.get(groot.size() - 2);
-			Node parent = new Node(null, left._weight + right._weight);//set "*" as the data of each parent node
+			Node parent = new Node((char)0, left._weight + right._weight);//set "*" as the data of each parent node
 			parent.left = left;
 			parent.right = right;
 			groot.remove(groot.size()-1);//extract-min
@@ -69,7 +69,7 @@ public class HuffmanTree {
 	public static int i = 0; 
 	public static void DFS(Node root){
 		// System.out.println("memorandum: " + memorandum + " i: " + (++i));
-		if(root._data != null){dic[(int)root._data] = memorandum.toString(); return ;} //叶子节点,把备忘录内容写入编码字典,倒着存
+		if(root._data != (char)0){dic[(int)root._data] = memorandum.toString(); return ;} //叶子节点,把备忘录内容写入编码字典,倒着存
 		if(root.left != null){
 			memorandum.add('0');
 			DFS(root.left);
@@ -112,20 +112,21 @@ public class HuffmanTree {
 		Node retriveNode = new Node();
 		int i;
 		retriveNode = root;
-		System.out.println(code.get(1));
-		// for(int j = 0; j < code.size(); j++){
-		// 	retriveNode = root;
-		// 	for(i = 0; i < code.get(j).length(); i++){
-		// 		if(code.get(j).charAt(i) == '0'){
-		// 			// retriveNode = retriveNode.left;
-		// 		}
-		// 		if(code.get(j).charAt(i) == '1'){
-		// 			// retriveNode = retriveNode.right;
-		// 		}
-		// 	}
-		// 	// data += retriveNode._data;
-		// }
-		return null;
+		// System.out.println(code);
+		for(int j = 0; j < code.size(); j++){
+			retriveNode = root;
+			for(i = 0; i < code.get(j).length(); i++){
+				if(code.get(j).charAt(i) == '0'){
+					retriveNode = retriveNode.left;
+				}
+				if(code.get(j).charAt(i) == '1'){
+					retriveNode = retriveNode.right;
+				}
+			}
+			data += retriveNode._data;
+		}
+		System.out.println(data);
+		return data;
 	}
 
 	public static void main(String[] args){
