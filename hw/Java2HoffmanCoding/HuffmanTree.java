@@ -1,131 +1,104 @@
-// package cn.edu.bistu.cs;
+import java.text.CollationElementIterator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-/**
- * 哈夫曼树实现
- * @author
- *
- */
+import java.util.*;
+
 public class HuffmanTree {
+	public static boolean DEBUG_INFO = false;
+	public static class Node implements Comparable<Node>{
+		Character _data;
+		int _weight;
+		Node left;
+		Node right;
+		public Node(){/*空节点构造*/}
+		public Node(Character data, int weight){
+			this._data = data;
+			this._weight = weight;
+		}
+		@Override
+		public int compareTo(Node o){
+			return o._weight-this._weight;
+		}
+		@Override
+		public String toString() {
+			return "{ " + _data + " >>> " + _weight + "}\n";
+	}
 
-	/**
-	 * 哈夫曼编码
-	 */
-	private Map<Character, String> code = null;
-	
-	/**
-	 * 生成的huffman树根结点
-	 */
-	private HTNode tree = null;
-		
-	/**
-	 * 根据初始的结点列表，建立哈夫曼树，
-	 * 并生成哈夫曼编码，保存在当前类的code对象中，
-	 * 生成的树根结点，被保存在当前类的tree对象中。
-	 * 可以反复生成哈夫曼树，每次重新构建树，将更新编码
-	 * @param nodes
-	 * @return
-	 */
-	public HTNode buildTree(List<HTNode> nodes){
-		return null;
 	}
-	
-	/**
-	 * 根据已建立的哈夫曼树根结点，生成对应的字符编码，
-	 * 字符编码应为0，1字符串
-	 * @param tree
-	 * @return
-	 */
-	public static Map<Character, String> getCode(HTNode tree){
-		//TODO
-		return null;
-	}
-	
-	/**
-	 * 获取已建立的哈夫曼树生成的字符编码，
-	 * 字符编码应为0，1字符串
-	 * @return
-	 */
-	public Map<Character, String> getCode(){
-		return this.code;
-	}
-	
-	
-	/**
-	 * 统计字符串中字符出现的频率
-	 * @param text
-	 * @return
-	 */
-	public static Map<Character,Integer> computeCharCount(String text){
-		Map<Character,Integer> count = new HashMap<Character,Integer>();//建立Map对象，用于返回
+
+	// =================================================================
+	public static List<Node> toList(String text){
+		Map<Character,Integer> countMap = new HashMap<Character,Integer>();//建立Map对象，用于返回
 		char x;//用于遍历临时存储
 		for(int i= 0; i < text.length(); i++){
 			x = text.charAt(i);
-			if(!count.containsKey(x)){//如果不包含当前字符
-				count.put(x,1);//则在map对象中加一个，每个字符初次遍历的时候都没有
+			if(!countMap.containsKey(x)){//如果不包含当前字符
+				countMap.put(x,1);//则在map对象中加一个，每个字符初次遍历的时候都没有
 			}
 			else{
-				count.put(x,count.get(x) + 1);//如果有的话就+1
+				countMap.put(x,countMap.get(x) + 1);//如果有的话就+1
 			}
 		}
-		return count;
+		if(DEBUG_INFO == true){System.out.println(countMap);}
+		//将Map转换为list
+		List<Node> countList = new ArrayList<Node>();
+		for(Map.Entry<Character, Integer> entry : countMap.entrySet()){
+			countList.add(new Node(entry.getKey(), entry.getValue()));
+			if(DEBUG_INFO == true){System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue()); }
+		}
+		
+		return countList;
 	}
-	public static void sortCharCount(Map<Character,Integer>){
-		//在这里写把Map排序的算法，用于第一次和每一次合成树
-		//=====================================================
-
-	}
-	
-	/**
-	 * 使用当前类训练好的huffman编码来对文本进行编码
-	 * 
-	 * @return
-	 */
-	public String encode(String text){
-		//TODO
-		return null;
-	}
-	
-	/**
-	 * 使用指定的huffman编码来对文本进行编码
-	 * @return
-	 */
-	public static String encode(String text, Map<Character, String> code){
-		//TODO
-		return null;
-	}
-
-	/**
-	 * 使用当前类中训练好的huffman编码，
-	 * 对编码后的文本进行解码
-	 * @param text
-	 * @return
-	 */
-	public String decode(String text){
-		//TODO
-		return null;
+	public static Node toGroot(List<Node> target){
+		List<Node> groot = new ArrayList<Node>(target);
+		
+		// Collections.sort(groot);
+		while(groot.size() > 1){
+			// MyComparator mc = new MyComparator();
+			Collections.sort(groot);
+			Node left = groot.get(groot.size() - 1);
+			Node right = groot.get(groot.size() - 2);
+			Node parent = new Node('*', left._weight + right._weight);
+			parent.left = left;
+			parent.right = right;
+			groot.remove(groot.size()-1);//extract-min
+			groot.remove(groot.size()-1);//extract-min
+			groot.add(parent);
+		}
+		System.out.println(groot);
+		// return null;
+		return groot.get(0);
 	}
 	
-	public HTNode getTree() {
-		return tree;
-	}
 
-	/**
-	 * 使用预先建立好的huffman树，
-	 * 对编码后的文本进行解码
-	 * @param text
-	 * @return
-	 */
-	public String decode(String text, HTNode tree){
-		//TODO
-		return null;
-	}
+
+	public static void inOrderTraverse(Node node) {
+       Queue queue = new ArrayDeque<Node>();
+        List<Node> list = new ArrayList<Node>();
+        if(node != null) {
+            queue.offer(node);
+        }
+          while(!queue.isEmpty()){  
+                //将该队列的队尾元素加入到list中  
+                list.add((Node) queue.peek());  
+                Node p = (Node) queue.poll();  
+
+                //如果左子节点不为null，将它加入到队列  
+                if(p.left != null){  
+                    queue.offer(p.left);  
+                }  
+
+                //如果右子节点不为null，将它加入到队列  
+                if(p.right != null){  
+                    queue.offer(p.right);  
+                }  
+            }        
+			for(int i = 0; i < list.size(); i++) {
+				System.out.println("data:"+list.get(i)._data + " weight:"+list.get(i)._weight);
+			}
+            return ;  
+		}
 	public static void main(String[] args){
-		HuffmanTree htree = new HuffmanTree();
-		//首先对字符串中的字符出现次数进行统计
+		System.out.println();
 		String data = "In computer science and information theory, "
 				+ "a Huffman code is a particular type of optimal prefix code that is commonly used for lossless data compression. "
 				+ "The process of finding and/or using such a code proceeds by means of Huffman coding, "
@@ -137,33 +110,12 @@ public class HuffmanTree {
 				+ "represented using fewer bits than less common symbols. Huffman's method can be efficiently implemented, "
 				+ "finding a code in linear time to the number of input weights if these weights are sorted.[2] However, "
 				+ "although optimal among methods encoding symbols separately, Huffman coding is not always optimal among all compression methods.";
-		Map<Character, Integer> chars = HuffmanTree.computeCharCount(data);
-		System.out.println(chars);
-		// ArrayList<HTNode> nodes = new ArrayList<>();
-		// for(Character c : chars.keySet()){
-		// 	HTNode node = new HTNode();
-		// 	node.setData(c);
-		// 	node.setWeight(chars.get(c));
-		// 	node.setLchild(null);
-		// 	node.setRchild(null);
-		// 	node.setLeaf(true);
-		// 	nodes.add(node);
-		// }
-		// HTNode tree = htree.buildTree(nodes);
-		// Map<Character, String> code = HuffmanTree.getCode(tree);
-		// for(Character c : code.keySet()){
-		// 	System.out.println("字符'"+c+"'的哈夫曼编码："+code.get(c));
-		// }
-		// String text = "In computer science and information theory";
-		// String coded = htree.encode(text);
-		// System.out.println("字符串：In computer science and information theory");
-		// System.out.println("被编码为："+coded);
-		// String oriText = htree.decode(coded);
-		// System.out.println("编码："+coded);
-		// System.out.println("被解码为："+oriText);
-		// System.out.println(oriText.equals(text));
+		List<Node> chars = HuffmanTree.toList(data);
+		Node receiver = HuffmanTree.toGroot(chars);
+		// HuffmanTree.inOrderTraverse(receiver);
+		
+		
+		
 	}
-	
-	
-	
 }
+
