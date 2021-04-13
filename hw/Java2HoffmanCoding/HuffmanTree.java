@@ -46,10 +46,7 @@ public class HuffmanTree {
 	}
 	public static Node toGroot(List<Node> target){
 		List<Node> groot = new ArrayList<Node>(target);
-		
-		// Collections.sort(groot);
 		while(groot.size() > 1){
-			// MyComparator mc = new MyComparator();
 			Collections.sort(groot);
 			Node left = groot.get(groot.size() - 1);
 			Node right = groot.get(groot.size() - 2);
@@ -94,17 +91,19 @@ public class HuffmanTree {
 	public static ArrayList<String> encode(String data){
 		ArrayList<String> code = new ArrayList<>();
 		for(int i = 0; i < data.length(); i++){
-			
-			code.add(dic[(int)data.charAt(i)]);
+			code.add(dic[(int)data.charAt(i)]);//查字典，把对应字符位置的编码加入字符串数组中
 		}
 		String display = new String();
-		for(String x : code){
-			display += x;
+		for(int i = 0, j; i < code.size(); i++){
+			for(j = 0; j < code.get(i).length(); j++ ){
+				display += code.get(i).charAt(j);
+			}
 		}
 		// System.out.println(code);
-
-		// System.out.println(display);
-
+		System.out.println("\n编码为：");
+		for(int i = 0; i < display.length(); i++){
+			System.out.printf("%c",display.charAt(i));
+		}
 		return code;
 	}
 	public static String decode(ArrayList<String> code, Node root){
@@ -125,28 +124,30 @@ public class HuffmanTree {
 			}
 			data += retriveNode._data;
 		}
-		System.out.println(data);
+		System.out.println("原文为："+data);
 		return data;
 	}
 
 	public static void main(String[] args){
 		System.out.println();
-		String data = "In computer science and information theory, "
-				+ "a Huffman code is a particular type of optimal prefix code that is commonly used for lossless data compression. "
-				+ "The process of finding and/or using such a code proceeds by means of Huffman coding, "
-				+ "an algorithm developed by David A. Huffman while he was a Ph.D. student at MIT, and published in the 1952 paper "
-				+ "\"A Method for the Construction of Minimum-Redundancy Codes\".[1] "
-				+ "The output from Huffman's algorithm can be viewed as a variable-length code table for encoding a source symbol "
-				+ "(such as a character in a file). The algorithm derives this table from the estimated probability or frequency of occurrence"
-				+ " (weight) for each possible value of the source symbol. As in other entropy encoding methods, more common symbols are generally "
-				+ "represented using fewer bits than less common symbols. Huffman's method can be efficiently implemented, "
-				+ "finding a code in linear time to the number of input weights if these weights are sorted.[2] However, "
-				+ "although optimal among methods encoding symbols separately, Huffman coding is not always optimal among all compression methods.";
+		String data = "Over the last week, we have engaged in thoughtful conversations with Clubs, former and current players, the Players Association, and the Players Alliance, among others, to listen to their views,";
+		// String data = "In computer science and information theory, "
+		// 		+ "a Huffman code is a particular type of optimal prefix code that is commonly used for lossless data compression. "
+		// 		+ "The process of finding and/or using such a code proceeds by means of Huffman coding, "
+		// 		+ "an algorithm developed by David A. Huffman while he was a Ph.D. student at MIT, and published in the 1952 paper "
+		// 		+ "\"A Method for the Construction of Minimum-Redundancy Codes\".[1] "
+		// 		+ "The output from Huffman's algorithm can be viewed as a variable-length code table for encoding a source symbol "
+		// 		+ "(such as a character in a file). The algorithm derives this table from the estimated probability or frequency of occurrence"
+		// 		+ " (weight) for each possible value of the source symbol. As in other entropy encoding methods, more common symbols are generally "
+		// 		+ "represented using fewer bits than less common symbols. Huffman's method can be efficiently implemented, "
+		// 		+ "finding a code in linear time to the number of input weights if these weights are sorted.[2] However, "
+		// 		+ "although optimal among methods encoding symbols separately, Huffman coding is not always optimal among all compression methods.";
 		List<Node> chars = HuffmanTree.toList(data);
 		Node receiver = HuffmanTree.toGroot(chars);
 		HuffmanTree.DFS(receiver);
-		// HuffmanTree.checkDic();
-		HuffmanTree.decode(HuffmanTree.encode(data), receiver);
+		HuffmanTree.checkDic();
+		String text = HuffmanTree.decode(HuffmanTree.encode(data), receiver);
+		System.out.println("\n解码前后一样吗? "+ data.equals(text));
 		
 		
 	}
