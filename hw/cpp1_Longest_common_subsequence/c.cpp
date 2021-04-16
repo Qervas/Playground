@@ -1,4 +1,3 @@
-//最长公共子序列
 //Longest common-subsequence problem
 #include<stdio.h>
 #include<string.h>
