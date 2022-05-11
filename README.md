@@ -1,2 +1,1 @@
-#code lab
-
+Self-paced coding demos
