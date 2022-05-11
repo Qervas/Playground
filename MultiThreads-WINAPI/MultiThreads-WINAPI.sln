@@ -7,12 +7,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiThreads-WINAPI", "Mult
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Allzeroes_v2_debug|x64 = Allzeroes_v2_debug|x64
+		Allzeroes_v2_debug|x86 = Allzeroes_v2_debug|x86
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Allzeroes_v2_debug|x64.ActiveCfg = Allzeroes_v2_debug|x64
+		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Allzeroes_v2_debug|x64.Build.0 = Allzeroes_v2_debug|x64
+		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Allzeroes_v2_debug|x86.ActiveCfg = Allzeroes_v2_debug|Win32
+		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Allzeroes_v2_debug|x86.Build.0 = Allzeroes_v2_debug|Win32
 		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Debug|x64.ActiveCfg = Debug|x64
 		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Debug|x64.Build.0 = Debug|x64
 		{9F692C69-4D6E-49E0-A820-0D934CF9A703}.Debug|x86.ActiveCfg = Debug|Win32

@@ -1,7 +1,15 @@
 #include<iostream>
 #include<Windows.h>
 
-/*
+/* Reader and Writer
+A process is inert.
+A process is a container of threads
+Every process must have one thread at least to start the execution
+The only thread(if it is only one thread in process), is main thread
+The thread itself inside a program is not a kernel object but
+There is an associated kernel object through which this thread is managed
+
+Lower the priority number, higher the priority
 HANDLE: Index of the kernel object used by your process/program in execution.
 HANDLE and Process HANDLE Table
 HANDLE :index of a kernel obj used in your program
@@ -30,11 +38,12 @@ void Writer() {
 		Sleep(1000);
 	}
 	std::cout << std::endl << "Writing stopped";
+	ResumeThread(thReader);
 }
 
 int main() {
-	//std::cout << std::endl << "The thread id for main thread is: " << GetCurrentThreadId();
-	//std::cout << std::endl << "The priority of main thread is:" << GetThreadPriority(GetCurrentThread());
+	std::cout << std::endl << "The thread id for main thread is: " << GetCurrentThreadId();
+	std::cout << std::endl << "The priority of main thread is:" << GetThreadPriority(GetCurrentThread());
 	thWriter = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Writer,
 		NULL, 0, &writerID);
 	/*(lpThreadAttributes: Priority inherits; dwStackSize: whatever the size will applicable to the thread(stackSize default:1MB),
@@ -56,13 +65,6 @@ int main() {
 
 
 /*
-A process is inert.
-A process is a container of threads
-Every process must have one thread at least to start the execution
-The only thread(if it is only one thread in process), is main thread
-The thread itself inside a program is not a kernel object but
-There is an associated kernel object through which this thread is managed
 
-Lower the priority number, higher the priority
 
 */
