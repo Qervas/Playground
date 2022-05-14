@@ -38,3 +38,10 @@
 */*.filters
 */.vs
 */.vs/*
+
+MultiThreads-WINAPI/Auxiliary/x64
+MultiThreads-WINAPI/Auxiliary/x64/*
+MultiThreads-WINAPI/Auxiliary/*.user
+MultiThreads-WINAPI/Auxiliary/*.filters
+MultiThreads-WINAPI/Auxiliary/.vs
+MultiThreads-WINAPI/Auxiliary/.vs/*
