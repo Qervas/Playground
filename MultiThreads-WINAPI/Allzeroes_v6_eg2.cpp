@@ -3,8 +3,7 @@
 using std::cout;
 using std::endl;
 
-#define KERNEL_OWNS_MUTEX
-#define ABANDON
+
 /*Mutex Kernel Object Exercise
 Two applications: 1.writing to DB 2.reading from DB
 Need to synchronize the access between the two
