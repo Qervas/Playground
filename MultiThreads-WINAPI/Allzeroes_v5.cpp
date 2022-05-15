@@ -3,11 +3,9 @@
 using std::cout;
 using std::endl;
 
-/*Use the event kernel object and critical section to enable the 
-communication among the 2 threads
-
-Sender should send the message to reciever only when the reciever 
-is ready to recieve
+/*About the Mutex Kernel Object
+* Mutex -> Mutual exclusion (no
+*
 */
 #define MSGEXIT 4
 
@@ -46,7 +44,7 @@ void Reciever() {
 		Sleep(1000);
 		LeaveCriticalSection(&cs);
 	}
-	
+
 }
 
 
