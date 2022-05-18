@@ -3,145 +3,130 @@
 输入：待扫描目录和字符串，比如c:\TestDir，abcd，即对c盘中TestDir全部文件进行扫描，看看有没有abcd字符串。
 输出：匹配的文件名，偏移值，一个文件包含多个重复字符串需要全部报告。
 */
+#include"ContentSearch.h"
+constexpr auto hSize = 6;
 
-#include<iostream>
-#include<string>
-#include<queue>
-#include<filesystem>
-#include<regex>
-#include<Windows.h>
-#include<sal.h>
-using std::string;
-using std::cout;
-using std::cin;
-using std::endl;
-using std::queue;
-
-#define KNRM  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
-//end color
-#define NONE        "\033[0m"
-//background color
-#define BBLACK      "40m"
-#define BRED        "41m"
-#define BGREEN      "42m"
-#define BYELLOW     "43m"
-#define BBLUE       "44m"
-#define BPURPLE     "45m"
-#define D_BGREEN    "46m"
-#define BWHITE      "47m"
-
-
-HANDLE hEvent = NULL;
+HANDLE hScanEvent = NULL;
+HANDLE hReadEvent = NULL;
+HANDLE hWriteEvent = NULL;
+HANDLE hScanner = NULL;
 HANDLE hReader = NULL;
 HANDLE hWriter = NULL;
-DWORD writerThId = 0;
+DWORD scannerThId = 0;
 DWORD readerThId = 0;
+DWORD writerThId = 0;
+DWORD readerMessageQueueCounter = 0;
+DWORD writerMeesageQueueCounter = 0;
 
-void printDots(int n, DWORD milliseconds) {
-	while (n--) {
-		printf(".");
-		Sleep(milliseconds);
-	}
-}
 
-struct Data {
-	queue<std::filesystem::path>* dir_list = nullptr;
-	std::regex* pattern = nullptr;
-	string _target_extension;
-	string _str_to_find;
-	explicit Data() = delete;
-	//Default searching *.txt files, for other types you need to deal with magic numbers of files
-	explicit Data(_In_opt_ const string& dir, _In_opt_ const string& str_to_find, _In_ const string& target_extension = "txt") {
-		dir_list = new queue<std::filesystem::path>();
-		dir_list->push(dir);//, std::filesystem::path::native_format
-		pattern = new std::regex("[[:print:]]*" + target_extension + "[[:print:]]*", std::regex::icase);
-		_str_to_find = str_to_find;
-		_target_extension = target_extension;
-	}
-	~Data() {
-		if (dir_list != nullptr) {
-			while (!dir_list->empty()) { dir_list->pop(); }
-			delete dir_list;
-			dir_list = nullptr;
-		}
-		if (pattern != nullptr) {
-			delete pattern;
-			pattern = nullptr;
-		}
-	}
-
-};
-
-bool match_filename(_In_ const std::filesystem::path& path, _In_ std::regex*& pattern) {
+bool match_filename(_In_ const std::filesystem::path& path,_In_ std::regex*& pattern) {
 	return std::regex_match(path.filename().string(), *pattern);
 }
 
-bool match_content(_In_ const string& content, _In_  std::regex*& pattern) {
+bool match_content(_In_ const string& content,_In_  std::regex*& pattern) {
 	return std::regex_match(content, *pattern);
 }
-void Reader(_Inout_opt_ Data* data) {//Find out all files under the user defined dir
-	if (data == nullptr) { throw std::runtime_error("data pointer is nullptr"); }
-	auto dir_list = data->dir_list;
-	if (dir_list->empty()) { cout << endl << "Path empty"; ExitThread(0); }
+void Scanner(_Inout_opt_ const string& dir) {//Find out all files under the user defined dir
+	cout << "ScannerThId:" << GetCurrentThreadId() << endl;
+
+	std::filesystem::path path(dir);
+	auto* dir_list = new queue<std::filesystem::path>();
+	dir_list->push(path);
 	DWORD dw;
-	std::filesystem::path path;
+	dw = WaitForSingleObject(hScanEvent, INFINITE);
+	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
+		cout << endl << "Event wait failed...";
+		ExitThread(1);
+	}
+	//PostThreadMessage(readerThId, TEST_MESSAGE, 0, 0);
 	while (!dir_list->empty()) {
-		dw = WaitForSingleObject(hEvent, INFINITE);
-		cout << "set" << endl;
-		if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-			cout << endl << "Event wait failed...";
-			ExitThread(1);
-		}
 		path = dir_list->front();
 		dir_list->pop();
 		for (const auto& entry : std::filesystem::directory_iterator(path)) {
 			if (entry.is_directory()) { dir_list->push(entry.path()); }
-			if (entry.is_regular_file()) {
+			if(entry.is_regular_file()){
 				printf(KGRN "%s " NONE "sending", entry.path().filename().string().c_str());
-				printDots(3, 500);
-				printf("\n");
-				PostThreadMessage(writerThId, 3, (WPARAM)&entry.path(), NULL);
+				printDots(3, 300);
+				
+				PostThreadMessage(readerThId, NORMAL_MESSAGE, NULL , (LPARAM)& entry.path());
+				cout << *(std::filesystem::path*)((LPARAM)&entry.path()) << endl;
+				readerMessageQueueCounter++;
+				
 				//cout << endl << entry.path().filename() << " is sending...";
-				ResetEvent(hEvent);
-				Sleep(1000);
+				//ResetEvent(hScanEvent);
+				Sleep(100);//Must be shorter than Sleep() in Reader()
 			}
 
 		}
 	}
-	//WaitForSingleObject(hEvent, INFINITE); //Waiting for Writer end
-	PostThreadMessage(writerThId, FALSE, NULL, NULL);
+	WaitForSingleObject(hScanEvent, INFINITE); //Waiting for Writer end
+	PostThreadMessage(readerThId, QUIT_MESSAGE, NULL, NULL);
+	if (dir_list != nullptr) {
+		while (!dir_list->empty()) { dir_list->pop(); }
+		delete dir_list;
+		dir_list = nullptr;
+	}
+	printf(KRED "Scanner Exit\n" NONE);
 	ExitThread(0);
 
 }
 
-void Writer() {//Recieve filenames-->scan their contents-->write results into a file
-	MSG msg;
-	SetEvent(hEvent);
-	while (GetMessage(&msg, NULL, 0, 0)) {
-		if (msg.message == FALSE) {
-			cout << endl << "The message to exit has been recieved";
-			ExitThread(0);
-		}
-		printf(KCYN "%s" NONE " recieved\n", (*(std::filesystem::path*)msg.wParam).filename().string().c_str());
-		Sleep(1000);
-		SetEvent(hEvent);//Resume Reader() to send filenames
+void Reader() {//Recieve filenames-->scan their contents-->write results into a file
+	cout << "ReaderThId:" << GetCurrentThreadId() << endl;
+
+	DWORD dw;
+	dw = WaitForSingleObject(hReadEvent, INFINITE);
+	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
+		cout << endl << "Event wait failed...";
+		ExitThread(1);
 	}
+	MSG msg;
+	SetEvent(hScanEvent);//start scanner
+	std::filesystem::path filename;
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		printf(KBLU "%d" NONE "Recieved\n ", msg.message);
+		if (msg.message == QUIT_MESSAGE) {
+			cout << endl << "The message to exit has been recieved\n";
+			break;
+		}
+		else if(msg.message == NORMAL_MESSAGE) {
+			readerMessageQueueCounter--;
+			filename = (*(std::filesystem::path*)msg.lParam).filename();
+			printf(KCYN "%s" NONE " recieved\n", filename.string().c_str());
+			SetEvent(hWriteEvent);
+			if (readerMessageQueueCounter == 0) {//All message processed
+				SetEvent(hScanEvent);//Notify hScanner to send QuitMessage
+			}
+
+		}
+	}
+	printf(KRED "Reader Exit\n" NONE);
+	ExitThread(0);
 
 
 }
 
+void Writer(_Inout_opt_ Data* data) {
+	cout << "WriterThId:" << GetCurrentThreadId() << endl;
+	SetEvent(hReadEvent);
+	DWORD dw;
+	dw = WaitForSingleObject(hWriteEvent, INFINITE);
+	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
+		cout << endl << "Event wait failed...";
+		ExitThread(1);
+	}
+	printf(KYEL "Writting\n" NONE);
+	printDots(3, 500);
+	//ResetEvent(hReadEvent);
+	printf(KRED "Writer Exit\n" NONE);
+	ExitThread(0);
+}
+
 int main(void) {
-	string dir, target_extension = "txt", str_to_find;
+	string dir, target_extension="txt", str_to_find;
 	cout << "Search Path: ";
 	//getline(cin, dir);
-	dir = "C:\\Users\\djmax\\Desktop\\lab\\VS\\MultiThreads_bistu\\data";
+	dir = "C:\\Users\\djmax\\Desktop\\lab\\VS\\MultiThreads_bistu\\data\\folder";
 	cout << dir << endl;
 	cout << "Search target_extension: " << "txt\n";
 	//getline(cin, target_extension);
@@ -152,31 +137,51 @@ int main(void) {
 	Data data(dir, str_to_find);
 
 	int err;
-	hEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("Event"));
+	hScanEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ScanfFilenamesEvent"));
 	err = GetLastError();
 	if (err != 0) {
 		cout << "Create Event Failed..." << endl;
 		return EXIT_FAILURE;
 	}
-	hReader = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Reader, &data, 0, &readerThId);
+	hReadEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadSinglefileEvent"));
+	err = GetLastError();
+	if (err != 0) {
+		cout << "Create Event Failed..." << endl;
+		return EXIT_FAILURE;
+	}
+	hWriteEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("WriteSinglefileEvent"));
+	err = GetLastError();
+	if (err != 0) {
+		cout << "Create Event Failed..." << endl;
+		return EXIT_FAILURE;
+	}
+	hScanner = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Scanner, &dir, 0, &scannerThId);
 	if (err != 0) {
 		cout << "Create Reader Thread Failed..." << endl;
 		return EXIT_FAILURE;
 	}
-	hWriter = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Writer, NULL, 0, &writerThId);
+	hReader = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Reader, NULL, 0, &readerThId);
+	if (err != 0) {
+		cout << "Create Reader Thread Failed..." << endl;
+		return EXIT_FAILURE;
+	}
+	hWriter = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Writer, &data, 0, &writerThId);
 	if (err != 0) {
 		cout << "Create Writer Thread Failed..." << endl;
 		return EXIT_FAILURE;
 	}
+	//For debug
+	SetThreadDescription(hScanner, TEXT("Sacnner()"));
 	SetThreadDescription(hReader, TEXT("Reader()"));
 	SetThreadDescription(hWriter, TEXT("Writer()"));
-	HANDLE hArr[3] = { hReader, hWriter, hEvent };
-	//WaitForSingleObject(hReader, INFINITE);
-	WaitForMultipleObjects(3, hArr, TRUE, INFINITE);
 
-	CloseHandle(hReader);
-	CloseHandle(hWriter);
-	CloseHandle(hEvent);
+	HANDLE hArr[hSize] = {hScanner,hReader, hWriter, hScanEvent, hReadEvent, hWriteEvent};
+	//WaitForSingleObject(hReader, INFINITE);
+	WaitForMultipleObjects(hSize, hArr, TRUE, INFINITE);
+
+	for (int i = 0; i < hSize; i++) {
+		CloseHandle(hArr[i]);
+	}
 
 	return EXIT_SUCCESS;
 }
