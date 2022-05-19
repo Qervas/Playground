@@ -1,11 +1,3 @@
-/*
-Requirement:
-
-Input: the directory and string to be scanned, such as c:\TestDir, "abcd", that is,
-		scan all TestDir files in the C: drive to see if there is "abcd" string.
-
-Output: matching filenames, offsets, a file containing multiple duplicate strings needs to be reported in full.
-*/
 #include"ContentSearch.h"
 constexpr auto hSize = 6;
 
@@ -26,18 +18,15 @@ bool match_filename(_In_ const std::filesystem::path& path,_In_ std::regex*& pat
 	return std::regex_match(path.filename().string(), *pattern);
 }
 
-bool match_content(_In_ const string& content,_In_  std::regex*& pattern) {
-	return std::regex_match(content, *pattern);
-}
 void Scanner(_In_opt_ const Data& data) {//Find out all files under the user defined dir
-	cout << "ScannerThId:" << GetCurrentThreadId() << endl;
-	std::filesystem::path path = *(data._work_dir);
-	auto* dir_list = new queue<std::filesystem::path>();
-	dir_list->push(path);
+	printf(KCYN "Scanner Enter\n" NONE);
 	DWORD dw;
+	std::filesystem::path path = *(data._work_dir);
+	auto* dir_list = new std::queue<std::filesystem::path>();
+	dir_list->push(path);//Remeber freeing space that you would claime on heap
 	dw = WaitForSingleObject(hScanEvent, INFINITE);
 	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
+		std::cout << std::endl << "Event wait failed...";
 		ExitThread(1);
 	}
 	while (!dir_list->empty()) {
@@ -46,7 +35,7 @@ void Scanner(_In_opt_ const Data& data) {//Find out all files under the user def
 		for (const auto& entry : std::filesystem::directory_iterator(path)) {
 			if (entry.is_directory()) { dir_list->push(entry.path()); }
 			//extension might be a list~
-			if(entry.is_regular_file() &&( entry.path().extension().string() == ".txt")) {//todo: file type filter
+			if(entry.is_regular_file() &&( entry.path().extension().string() == data._target_extension)) {//todo: file type filter
 				printf(KGRN "%s " NONE "sending\n", entry.path().filename().string().c_str());
 				
 				PostThreadMessage(readerThId, NORMAL_MESSAGE, NULL , (LPARAM)& entry.path());
@@ -56,7 +45,7 @@ void Scanner(_In_opt_ const Data& data) {//Find out all files under the user def
 			}
 		}
 	}
-	WaitForSingleObject(hScanEvent, INFINITE); //Waiting for Writer end
+	WaitForSingleObject(hScanEvent, INFINITE); //Wait for Reader to finish work
 	PostThreadMessage(readerThId, QUIT_MESSAGE, NULL, NULL);
 	if (dir_list != nullptr) {
 		while (!dir_list->empty()) { dir_list->pop(); }
@@ -69,24 +58,25 @@ void Scanner(_In_opt_ const Data& data) {//Find out all files under the user def
 }
 
 void Reader(_In_opt_ const Data& data) {//Recieve filenames-->scan their contents-->write results into a file
-	cout << "ReaderThId:" << GetCurrentThreadId() << endl;
+	printf(KCYN "Reader Enter\n" NONE);
 
 	DWORD dw;
-	dw = WaitForSingleObject(hReadEvent, INFINITE);
-	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
-		ExitThread(1);
-	}
-	MSG msg;
-	std::string line;
+	MSG msg; //Remeber freeing space that you would claim on heap
+	std::string line, pos;
 	std::filesystem::path filepath;
 	std::string str_to_write;
-	DWORD line_number;
+	std::queue <std::string> posList;
+	DWORD line_number = 0; 
+	BOOL matched = FALSE;
+	dw = WaitForSingleObject(hReadEvent, INFINITE);
+	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
+		std::cout << std::endl << "Event wait failed...";
+		ExitThread(1);
+	}
 	SetEvent(hScanEvent);//start scanner
 	while (GetMessage(&msg, NULL, 0, 0)) {
-		//printf(KBLU "%d" NONE "Recieved\n ", msg.message);
 		if (msg.message == QUIT_MESSAGE) {
-			cout << endl << "The message to exit has been recieved\n";
+			std::cout << std::endl << "The message to exit has been recieved\n";
 			break;
 		}
 		else if(msg.message == NORMAL_MESSAGE) {
@@ -94,298 +84,131 @@ void Reader(_In_opt_ const Data& data) {//Recieve filenames-->scan their content
 			filepath = (*(std::filesystem::path*)msg.lParam);
 			printf(KCYN "%s" NONE " recieved\n", filepath.filename().string().c_str());
 			
-			std::ifstream infile(filepath.string());
-			line_number = 0;
-			str_to_write = filepath.filename().string() + ": "; printf("%s", str_to_write.c_str()); 
-			while (std::getline(infile, line)) {
-				//printf(KMAG "%s" NONE "\n", line.c_str());
+			std::ifstream infile(filepath.string()); //open file to read
+			str_to_write = filepath.filename().string() + " "; //assign filename to str_to_write
+			while (std::getline(infile, line)) {//Read the file line by line
+				//match all substrings
 				std::sregex_iterator iter(line.begin(), line.end(), *(data._pattern)), end ;//end is default value
+				if (iter != end) {matched = TRUE;}
 				while (iter != end) {
-
-					printf(KMAG " (%d, %ld) " NONE, line_number, iter->position());
+					str_to_write.append("(" + std::to_string(line_number) + ", " + std::to_string(iter->position()) + ") ");
+					//printf(KMAG " (%d, %ld) " NONE, line_number, iter->position());
+					std::cout << pos;
 					++iter;
 				}
 				++line_number;
 			}
-			printf("\n");
-
-
-			SetEvent(hWriteEvent);
+			infile.close();
+			line_number = 0; //Reset
+			if (matched) {
+				PostThreadMessage(writerThId, NORMAL_MESSAGE, NULL, (LPARAM)&str_to_write);
+				writerMeesageQueueCounter++;
+				matched = FALSE;
+			}
+			else {
+				PostThreadMessage(writerThId, INVALID_MESSAGE, NULL, NULL);
+			}
+			SetEvent(hWriteEvent);//Notify Writer to go on
 			if (readerMessageQueueCounter == 0) {//All message processed
 				SetEvent(hScanEvent);//Notify hScanner to send QuitMessage
 			}
-
 		}
 	}
+	WaitForSingleObject(hReadEvent, INFINITE); // Wait for writer to finish work
+	PostThreadMessage(writerThId, QUIT_MESSAGE, NULL, NULL);
 	printf(KRED "Reader Exit\n" NONE);
 	ExitThread(0);
-
-
 }
 
 void Writer(_Inout_opt_ Data* data) {
-	cout << "WriterThId:" << GetCurrentThreadId() << endl;
+	printf(KCYN "Writer Enter\n" NONE);
 	SetEvent(hReadEvent);
-	DWORD dw;
+	DWORD dw;//Remeber freeing space that you would claime on heap
+	std::string str_to_write;
 	dw = WaitForSingleObject(hWriteEvent, INFINITE);
 	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
-		ExitThread(1);
-	}
-	printf(KYEL "Writting\n" NONE);
-	//ResetEvent(hReadEvent);
-	printf(KRED "Writer Exit\n" NONE);
-	ExitThread(0);
-}
-
-int main(void) {
-	string dir, target_extension="txt", str_to_find;
-	cout << "Search Path: ";
-	//getline(cin, dir);
-	dir = "C:\\Users\\djmax\\Desktop\\lab\\VS\\MultiThreads_bistu\\data\\folder";
-	cout << dir << endl;
-	cout << "Search target_extension: " << "txt\n";
-	//getline(cin, target_extension);
-	getline(cin, str_to_find);
-	if (target_extension == "" || dir == "" || str_to_find == "") { return EXIT_FAILURE; }
-
-
-	Data data(dir, str_to_find,".txt");
-
-	int err;
-	hScanEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ScanfFilenamesEvent"));
-	err = GetLastError();
-	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	hReadEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadSinglefileEvent"));
-	err = GetLastError();
-	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	hWriteEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("WriteSinglefileEvent"));
-	err = GetLastError();
-	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	hScanner = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Scanner, &data, 0, &scannerThId);
-	if (err != 0) {
-		cout << "Create Reader Thread Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	hReader = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Reader, &data, 0, &readerThId);
-	if (err != 0) {
-		cout << "Create Reader Thread Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	hWriter = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Writer, &data, 0, &writerThId);
-	if (err != 0) {
-		cout << "Create Writer Thread Failed..." << endl;
-		return EXIT_FAILURE;
-	}
-	//For debug
-	SetThreadDescription(hScanner, TEXT("Sacnner()"));
-	SetThreadDescription(hReader, TEXT("Reader()"));
-	SetThreadDescription(hWriter, TEXT("Writer()"));
-
-	HANDLE hArr[hSize] = {hScanner,hReader, hWriter, hScanEvent, hReadEvent, hWriteEvent};
-	//WaitForSingleObject(hReader, INFINITE);
-	WaitForMultipleObjects(hSize, hArr, TRUE, INFINITE);
-
-	for (int i = 0; i < hSize; i++) {
-		CloseHandle(hArr[i]);
-	}
-
-	return EXIT_SUCCESS;
-}/*
-Requirement:
-
-Input: the directory and string to be scanned, such as c:\TestDir, "abcd", that is,
-		scan all TestDir files in the C: drive to see if there is "abcd" string.
-
-Output: matching filenames, offsets, a file containing multiple duplicate strings needs to be reported in full.
-*/
-#include"ContentSearch.h"
-constexpr auto hSize = 6;
-
-HANDLE hScanEvent = NULL;
-HANDLE hReadEvent = NULL;
-HANDLE hWriteEvent = NULL;
-HANDLE hScanner = NULL;
-HANDLE hReader = NULL;
-HANDLE hWriter = NULL;
-DWORD scannerThId = 0;
-DWORD readerThId = 0;
-DWORD writerThId = 0;
-DWORD readerMessageQueueCounter = 0;
-DWORD writerMeesageQueueCounter = 0;
-
-
-bool match_filename(_In_ const std::filesystem::path& path,_In_ std::regex*& pattern) {
-	return std::regex_match(path.filename().string(), *pattern);
-}
-
-bool match_content(_In_ const string& content,_In_  std::regex*& pattern) {
-	return std::regex_match(content, *pattern);
-}
-void Scanner(_In_opt_ const Data& data) {//Find out all files under the user defined dir
-	cout << "ScannerThId:" << GetCurrentThreadId() << endl;
-	std::filesystem::path path = *(data._work_dir);
-	auto* dir_list = new queue<std::filesystem::path>();
-	dir_list->push(path);
-	DWORD dw;
-	dw = WaitForSingleObject(hScanEvent, INFINITE);
-	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
-		ExitThread(1);
-	}
-	while (!dir_list->empty()) {
-		path = dir_list->front();
-		dir_list->pop();
-		for (const auto& entry : std::filesystem::directory_iterator(path)) {
-			if (entry.is_directory()) { dir_list->push(entry.path()); }
-			//extension might be a list~
-			if(entry.is_regular_file() &&( entry.path().extension().string() == ".txt")) {//todo: file type filter
-				printf(KGRN "%s " NONE "sending\n", entry.path().filename().string().c_str());
-				
-				PostThreadMessage(readerThId, NORMAL_MESSAGE, NULL , (LPARAM)& entry.path());
-				//cout << *(std::filesystem::path*)((LPARAM)&entry.path()) << endl; //for Debug
-				readerMessageQueueCounter++;
-				Sleep(100);//Must be shorter than Sleep() in Reader()
-			}
-		}
-	}
-	WaitForSingleObject(hScanEvent, INFINITE); //Waiting for Writer end
-	PostThreadMessage(readerThId, QUIT_MESSAGE, NULL, NULL);
-	if (dir_list != nullptr) {
-		while (!dir_list->empty()) { dir_list->pop(); }
-		delete dir_list;
-		dir_list = nullptr;
-	}
-	printf(KRED "Scanner Exit\n" NONE);
-	ExitThread(0);
-
-}
-
-void Reader(_In_opt_ const Data& data) {//Recieve filenames-->scan their contents-->write results into a file
-	cout << "ReaderThId:" << GetCurrentThreadId() << endl;
-
-	DWORD dw;
-	dw = WaitForSingleObject(hReadEvent, INFINITE);
-	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
+		std::cout << std::endl << "Event wait failed...";
 		ExitThread(1);
 	}
 	MSG msg;
-	std::string line;
-	std::filesystem::path filepath;
-	std::string str_to_write;
-	DWORD line_number;
-	SetEvent(hScanEvent);//start scanner
+	std::ofstream outfile("./output.txt");
 	while (GetMessage(&msg, NULL, 0, 0)) {
-		//printf(KBLU "%d" NONE "Recieved\n ", msg.message);
-		if (msg.message == QUIT_MESSAGE) {
-			cout << endl << "The message to exit has been recieved\n";
+		if (msg.message == INVALID_MESSAGE) {
+			continue;
+		}
+		else if (msg.message == NORMAL_MESSAGE) {
+			printf(KMAG  "Writing..." NONE "\n");
+			writerMeesageQueueCounter--;
+			str_to_write = *((std::string*)msg.lParam);
+			outfile << str_to_write << "\n";
+			if (writerMeesageQueueCounter == 0) {
+				SetEvent(hReadEvent);
+			}
+		}
+		else if (msg.message == QUIT_MESSAGE) {
+			std::cout << std::endl << "The message to exit has been recieved\n";
 			break;
 		}
-		else if(msg.message == NORMAL_MESSAGE) {
-			readerMessageQueueCounter--;
-			filepath = (*(std::filesystem::path*)msg.lParam);
-			printf(KCYN "%s" NONE " recieved\n", filepath.filename().string().c_str());
-			
-			std::ifstream infile(filepath.string());
-			line_number = 0;
-			str_to_write = filepath.filename().string() + ": "; printf("%s", str_to_write.c_str()); 
-			while (std::getline(infile, line)) {
-				//printf(KMAG "%s" NONE "\n", line.c_str());
-				std::sregex_iterator iter(line.begin(), line.end(), *(data._pattern)), end ;//end is default value
-				while (iter != end) {
-
-					printf(KMAG " (%d, %ld) " NONE, line_number, iter->position());
-					++iter;
-				}
-				++line_number;
-			}
-			printf("\n");
-
-
-			SetEvent(hWriteEvent);
-			if (readerMessageQueueCounter == 0) {//All message processed
-				SetEvent(hScanEvent);//Notify hScanner to send QuitMessage
-			}
-
-		}
+		
 	}
-	printf(KRED "Reader Exit\n" NONE);
-	ExitThread(0);
-
-
-}
-
-void Writer(_Inout_opt_ Data* data) {
-	cout << "WriterThId:" << GetCurrentThreadId() << endl;
-	SetEvent(hReadEvent);
-	DWORD dw;
-	dw = WaitForSingleObject(hWriteEvent, INFINITE);
-	if (dw == WAIT_FAILED || dw == WAIT_ABANDONED || dw == WAIT_TIMEOUT) {
-		cout << endl << "Event wait failed...";
-		ExitThread(1);
-	}
-	printf(KYEL "Writting\n" NONE);
-	//ResetEvent(hReadEvent);
-	printf(KRED "Writer Exit\n" NONE);
+	outfile.close();
+	printf("outcome is written to" KGRN" ./output.txt\n" NONE KRED "Writer Exit\n" NONE);
 	ExitThread(0);
 }
 
 int main(void) {
-	string dir, target_extension="txt", str_to_find;
-	cout << "Search Path: ";
-	//getline(cin, dir);
-	dir = "C:\\Users\\djmax\\Desktop\\lab\\VS\\MultiThreads_bistu\\data\\folder";
-	cout << dir << endl;
-	cout << "Search target_extension: " << "txt\n";
-	//getline(cin, target_extension);
-	getline(cin, str_to_find);
-	if (target_extension == "" || dir == "" || str_to_find == "") { return EXIT_FAILURE; }
+	std::string input, dir, target_extension="txt", str_to_find;
+	char confirm;
+	std::cout << "Search Path(default: \".\\\"): ";
+	getline(std::cin, input);
+	std::cin.ignore();
+	dir = input.empty() ? "" : input;
+	std::cout << "Search target_extension:(default: [txt/c/cpp/h/java/md/py...] non format only)";
+	getline(std::cin, input);
+	target_extension = input.empty() ? "txt" : input;
+	std::cout << "Search contents:";
+	getline(std::cin, str_to_find);
+	if (str_to_find.empty()) { throw std::runtime_error("Search contents cannot be empty! :D"); }
+	std::cout << "Case-sensitive?[Y/n]";
+	scanf_s("%c", &confirm); 
+	BOOL case_sensitive = confirm == 'Y' ? TRUE : FALSE;
+
+	Data data(dir, str_to_find, case_sensitive, target_extension);//data is shared within 3 threads
 
 
-	Data data(dir, str_to_find,".txt");
-
+	//Events and Threads create
 	int err;
 	hScanEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ScanfFilenamesEvent"));
 	err = GetLastError();
 	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
+		std::cout << "Create Event Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	hReadEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("ReadSinglefileEvent"));
 	err = GetLastError();
 	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
+		std::cout << "Create Event Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	hWriteEvent = CreateEvent(NULL, TRUE, FALSE, TEXT("WriteSinglefileEvent"));
 	err = GetLastError();
 	if (err != 0) {
-		cout << "Create Event Failed..." << endl;
+		std::cout << "Create Event Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	hScanner = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Scanner, &data, 0, &scannerThId);
 	if (err != 0) {
-		cout << "Create Reader Thread Failed..." << endl;
+		std::cout << "Create Reader Thread Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	hReader = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Reader, &data, 0, &readerThId);
 	if (err != 0) {
-		cout << "Create Reader Thread Failed..." << endl;
+		std::cout << "Create Reader Thread Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	hWriter = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)Writer, &data, 0, &writerThId);
 	if (err != 0) {
-		cout << "Create Writer Thread Failed..." << endl;
+		std::cout << "Create Writer Thread Failed..." << std::endl;
 		return EXIT_FAILURE;
 	}
 	//For debug
@@ -393,8 +216,9 @@ int main(void) {
 	SetThreadDescription(hReader, TEXT("Reader()"));
 	SetThreadDescription(hWriter, TEXT("Writer()"));
 
+	//Threads start order: hWriter-->hReader-->hScanner
+	//Threads end order: hScanner-->hReader-->hWriter
 	HANDLE hArr[hSize] = {hScanner,hReader, hWriter, hScanEvent, hReadEvent, hWriteEvent};
-	//WaitForSingleObject(hReader, INFINITE);
 	WaitForMultipleObjects(hSize, hArr, TRUE, INFINITE);
 
 	for (int i = 0; i < hSize; i++) {

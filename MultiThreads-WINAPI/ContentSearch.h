@@ -8,15 +8,10 @@
 #include<fstream>
 #include<Windows.h>
 #include<sal.h>
-using std::string;
-using std::cout;
-using std::cin;
-using std::endl;
-using std::queue;
 
+#define INVALID_MESSAGE 4
 #define NORMAL_MESSAGE 3
 #define QUIT_MESSAGE 2
-#define TEST_MESSAGE 1
 
 
 //fonts color
@@ -40,19 +35,25 @@ using std::queue;
 #define D_BGREEN    "46m"
 #define BWHITE      "47m"
 
-
-
 struct Data {
-	//queue<string>* out_buffer = nullptr; //share between Reader() and Writer()
 	std::filesystem::path* _work_dir;
 	std::regex* _pattern = nullptr;
-	string _target_extension;
+	std::string _target_extension;
 	explicit Data() = default;
 	//Default searching *.txt files, for other types you need to deal with magic numbers of files
-	explicit Data(_In_opt_ const std::string& work_dir,_In_opt_ const string& str_to_find, _In_ const string& target_extension = "txt") {
-		_work_dir = new std::filesystem::path(work_dir);
-		//out_buffer = new queue<string>();
-		_pattern = new std::regex(str_to_find,std::regex::icase);
+	explicit Data(_In_opt_ const std::string& work_dir,_In_opt_ const std::string& str_to_find,_In_opt_ BOOL case_sensitive,_In_ const std::string& target_extension = "txt") {
+		if (work_dir == "") {
+			_work_dir = new std::filesystem::path(std::filesystem::current_path());
+		}
+		else {
+			_work_dir = new std::filesystem::path(work_dir);
+		}
+		if (case_sensitive) {
+			_pattern = new std::regex(str_to_find);
+		}
+		else {
+			_pattern = new std::regex(str_to_find,std::regex::icase);
+		}
 		_target_extension = "." + target_extension;
 	}
 	~Data() {
@@ -61,11 +62,6 @@ struct Data {
 			_work_dir = nullptr;
 
 		}
-		//if (out_buffer != nullptr) {
-		//	while (!out_buffer->empty()) { out_buffer->pop(); }
-		//	delete out_buffer;
-		//	out_buffer = nullptr;
-		//}
 		if (_pattern != nullptr) {
 			delete _pattern;
 			_pattern = nullptr;
