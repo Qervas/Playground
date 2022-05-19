@@ -1,0 +1,7 @@
+.vscode
+.vs
+x64
+*.vcxproj.filters
+*.vcxproj.user
+Auxilary/*.vcxproj.filters
+Auxilary/*.vcxproj.user
