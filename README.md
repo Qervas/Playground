@@ -1,3 +1,12 @@
 Self-paced coding demos
-- [x] MultiThreads-WINAPI 
-> Thanks to Varteta Learning Platform on Youtube https://www.youtube.com/channel/UC7-Ourn_kpT-EnvVoCxTgsw
+- [x] [MultiThreads-WINAPI ](./MultiThreads-WINAPI/README.md)
+<table>
+  <tr>
+     <td>WinAPI console</td>
+     <td>WinAPi output</td>
+  </tr>
+  <tr>
+    <td><img src="./Figures/winAPI-console.png" width=70% ></td>
+    <td><img src="./Figures/winAPI-output.png" ></td>
+  </tr>
+ </table>
