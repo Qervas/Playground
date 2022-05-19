@@ -5,6 +5,7 @@
 #include<queue>
 #include<filesystem>
 #include<regex>
+#include<fstream>
 #include<Windows.h>
 #include<sal.h>
 using std::string;
@@ -39,49 +40,35 @@ using std::queue;
 #define D_BGREEN    "46m"
 #define BWHITE      "47m"
 
-void printDots(int n, DWORD milliseconds) {
-	while (n--) {
-		printf(".");
-		Sleep(milliseconds);
-	}
-	printf("\n");
-}
-void printDots(int dotNum, int loopCount, DWORD eachDotSleepTime_Milliseconds) {//Loading
-	int n = dotNum;
-	while (loopCount--) {
-		while (n--) {
-			printf(".");
-			Sleep(eachDotSleepTime_Milliseconds);
-		}
-		while (n++ - dotNum) {
-			printf("\b");
-		}
-	}
-}
+
 
 struct Data {
-	queue<string>* out_buffer = nullptr; //share between Reader() and Writer()
-	std::regex* pattern = nullptr;
+	//queue<string>* out_buffer = nullptr; //share between Reader() and Writer()
+	std::filesystem::path* _work_dir;
+	std::regex* _pattern = nullptr;
 	string _target_extension;
-	string _str_to_find;
-	explicit Data() = delete;
+	explicit Data() = default;
 	//Default searching *.txt files, for other types you need to deal with magic numbers of files
-	explicit Data(_In_opt_ const string& str_to_find, _In_ const string& target_extension = "txt") {
-
-		out_buffer = new queue<string>();
-		pattern = new std::regex("[[:print:]]*" + target_extension + "[[:print:]]*", std::regex::icase);
-		_str_to_find = str_to_find;
-		_target_extension = target_extension;
+	explicit Data(_In_opt_ const std::string& work_dir,_In_opt_ const string& str_to_find, _In_ const string& target_extension = "txt") {
+		_work_dir = new std::filesystem::path(work_dir);
+		//out_buffer = new queue<string>();
+		_pattern = new std::regex(str_to_find,std::regex::icase);
+		_target_extension = "." + target_extension;
 	}
 	~Data() {
-		if (out_buffer != nullptr) {
-			while (!out_buffer->empty()) { out_buffer->pop(); }
-			delete out_buffer;
-			out_buffer = nullptr;
+		if (_work_dir != nullptr) {
+			delete _work_dir;
+			_work_dir = nullptr;
+
 		}
-		if (pattern != nullptr) {
-			delete pattern;
-			pattern = nullptr;
+		//if (out_buffer != nullptr) {
+		//	while (!out_buffer->empty()) { out_buffer->pop(); }
+		//	delete out_buffer;
+		//	out_buffer = nullptr;
+		//}
+		if (_pattern != nullptr) {
+			delete _pattern;
+			_pattern = nullptr;
 		}
 	}
 };
