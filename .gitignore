@@ -38,6 +38,8 @@
 */*.filters
 */.vs
 */.vs/*
+*/*.sln
+*/*.vcxproj
 
 MultiThreads-WINAPI/Auxiliary/x64
 MultiThreads-WINAPI/Auxiliary/x64/*
@@ -45,3 +47,6 @@ MultiThreads-WINAPI/Auxiliary/*.user
 MultiThreads-WINAPI/Auxiliary/*.filters
 MultiThreads-WINAPI/Auxiliary/.vs
 MultiThreads-WINAPI/Auxiliary/.vs/*
+MultiThreads-WINAPI/Auxiliary/*.vcxproj
+MultiThreads-WINAPI/Auxiliary/*.sln
+
