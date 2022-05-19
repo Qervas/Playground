@@ -32,7 +32,7 @@ Reader: "I finish my work! I'll meet you at the main thread hall" Scanner: "Well
 
 Reader:
 1. Waits for Writer to initialize at the beginning 
-(Reader: "Shall I start my work and notify Scanner? " Writer: "One sec." ... Writer: "Good to go" Reader: "Copy, this is Reader. Scanner, you're green")
+(Reader: "Shall I start my work and notify Scanner? " Writer: "One sec." ... Writer: "Good to go" Reader: "Copy, this is Reader. Scanner, you're ready for departure")
 2. Waits for Scanner to send messages(`PostThreadMessage`) with files path info (Scanner: "Here's your task..." Reader: "Alright, I'll get it done")
 3. Waits for Writer's `QUIT_MESSAGE` to exit thread also send  `QUIT_MESSAGE` to Scanner
 (Reader: "Scanner is waiting... Before you exit, let me know~
