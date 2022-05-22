@@ -2,8 +2,8 @@
 // Created by franktudor on 5/21/22.
 //
 #pragma once
-#ifndef MULTITHREADING_BISTU_CONTENTSEARCH_H
-#define MULTITHREADING_BISTU_CONTENTSEARCH_H
+#ifndef CONTENTSEARCH_H
+#define CONTENTSEARCH_H
 #include <iostream>
 #include <pthread.h>
 #include <unistd.h>
@@ -14,7 +14,6 @@
 #include <regex>
 #include <filesystem>
 #include<fstream>
-#include<deque>
 namespace fs = std::filesystem;
 //fonts color
 #define KNRM  "\x1B[0m"
@@ -51,34 +50,14 @@ public:
 public:
     Data() =default;
     explicit Data(const fs::path& directory_to_search, const fs::path& directory_for_output,\
-                  const std::string& tofind, const bool& casesensitive, const std::string& filetype){
-
-        _directory_to_search = directory_to_search;
-        _directory_for_output = directory_for_output;
-
-        if(casesensitive){
-            _pattern = new std::regex(R"(\d+)");
-        }else{
-            _pattern = new std::regex(tofind, std::regex::icase);
-        }
-        file_list = new std::queue<fs::path>();
-        print_list = new std::queue<std::string>();
-
-        scannerWorking = true;
-        readerWorking = true;
-//        //Todo: filetype
-    }
+                  const std::string& tofind, const bool& casesensitive, const std::string& filetype);
     ~Data(){
         if(file_list != nullptr){
-            while(file_list->size()){
-                file_list->pop();
-            }
+            while (!file_list->empty())file_list->pop();
             file_list = nullptr;
         }
         if(print_list != nullptr){
-            while(print_list->size()){
-                print_list->pop();
-            }
+            while (!print_list->empty())print_list->pop();
             print_list = nullptr;
         }
         delete _pattern;
@@ -107,4 +86,4 @@ public:
 };
 
 
-#endif //MULTITHREADING_BISTU_CONTENTSEARCH_H
+#endif //CONTENTSEARCH_H
