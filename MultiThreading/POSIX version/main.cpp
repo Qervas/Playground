@@ -3,7 +3,7 @@
  * @Date: 2022-05-19 18:45:53
  * @LastEditors: FrankTudor
  * @Description: This file is created, edited, contributed by FrankTudor
- * @LastEditTime: 2022-05-23 00:21:57
+ * @LastEditTime: 2022-05-23 13:44:10
  */
 #include "ContentSearch.h"
 
@@ -34,7 +34,8 @@ int main() {
     std::cout << "Search filetype[All text files]: ";
     getline(std::cin, filetype);
     std::cout << "Search contents[Not null]:";
-    getline(std::cin, tofind);
+    getline(std::cin, input);
+    tofind = input.empty() ? ".*.[[:print:]]*" : input;
     std::cout << "Case sensitive[Y/n]?";
     char Yes_or_No;
     scanf("%c",&Yes_or_No);
