@@ -63,7 +63,7 @@ void Reader(_In_opt_ const Data& data) {//Recieve filenames-->scan their content
 
 	DWORD dw;
 	MSG msg; //Remeber freeing space that you would claim on heap
-	std::string line, pos;
+	std::string line;
 	std::filesystem::path filepath;
 	std::string str_to_write;
 	std::queue <std::string> posList;
@@ -94,7 +94,6 @@ void Reader(_In_opt_ const Data& data) {//Recieve filenames-->scan their content
 				while (iter != end) {
 					str_to_write.append("(" + std::to_string(line_number) + ", " + std::to_string(iter->position()) + ") ");
 					//printf(KMAG " (%d, %ld) " NONE, line_number, iter->position());
-					std::cout << pos;
 					++iter;
 				}
 				++line_number;
