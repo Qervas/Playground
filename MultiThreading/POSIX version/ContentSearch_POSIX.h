@@ -1,19 +1,20 @@
-//
-// Created by franktudor on 5/21/22.
-//
-#pragma once
-#ifndef CONTENTSEARCH_H
-#define CONTENTSEARCH_H
+/*
+ * @Author: FrankTudor
+ * @Date: 2022-05-23 00:06:37
+ * @LastEditors: FrankTudor
+ * @Description: This file is created, edited, contributed by FrankTudor
+ * @LastEditTime: 2022-05-23 14:41:14
+ */
+
+#ifndef CONTENTSEARCH_POSIX_H
+#define CONTENTSEARCH_POSIX_H
 #include <iostream>
 #include <pthread.h>
-#include <unistd.h>
-#include<semaphore>
-#include<csignal>
-#include<sys/msg.h>
 #include<queue>
 #include <regex>
 #include <filesystem>
 #include<fstream>
+#include<unordered_set>
 namespace fs = std::filesystem;
 //fonts color
 #define KNRM  "\x1B[0m"
@@ -39,7 +40,7 @@ namespace fs = std::filesystem;
 
 class Data{
 public:
-    std::string _filetype;
+    std::unordered_set<std::string> _filetype_list;
     fs::path _directory_to_search;
     fs::path _directory_for_output;
     std::regex *_pattern ;
@@ -77,13 +78,13 @@ public:
     void setScannerIsWorking(bool status){scannerWorking = status;}
     void setReaderIsWorking(bool status){readerWorking = status;}
     std::regex getPattern(){return *_pattern;}
-//
-
-
-
-
-
+    bool getFiletypeIsExist() const{
+        return !_filetype_list.empty();
+    }
+    std::unordered_set<std::string>& getFiletypeList(){
+        return _filetype_list;
+    }
 };
 
 
-#endif //CONTENTSEARCH_H
+#endif //CONTENTSEARCH_POSIX_H
