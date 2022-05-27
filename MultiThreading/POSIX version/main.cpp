@@ -3,9 +3,9 @@
  * @Date: 2022-05-19 18:45:53
  * @LastEditors: FrankTudor
  * @Description: This file is created, edited, contributed by FrankTudor
- * @LastEditTime: 2022-05-23 13:44:10
+ * @LastEditTime: 2022-05-27 13:27:56
  */
-#include "ContentSearch.h"
+#include "ContentSearch_POSIX.h"
 
 constexpr auto THREAD_SIZE = 3;
 void* Scanner(void*);
@@ -53,7 +53,7 @@ int main() {
     }
 
 
-    for(unsigned long i : th){
+    for(auto& i : th){
         err = pthread_join(i, nullptr);
         if(err != 0){
             perror("thread join failed");
