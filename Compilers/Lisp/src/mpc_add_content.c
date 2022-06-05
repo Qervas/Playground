@@ -3,10 +3,11 @@
  * @Date: 2022-06-04 20:30:04
  * @LastEditors: FrankTudor
  * @Description: This file is created, edited, contributed by FrankTudor
- * @LastEditTime: 2022-06-04 21:55:40
+ * @LastEditTime: 2022-06-05 16:29:55
  */
 #include "mpc_add_content.h"
-
+#define evaluation
+#ifdef evaluation
 int max(int n,  ...){
 	va_list va;
 	va_start(va,n);
@@ -85,6 +86,28 @@ long mpc_ast_node_count(mpc_ast_t* t){
 		count += mpc_ast_node_count(t->children[i]);
 		i++;
 	}
-	return count ;//plus current level operator
+	return count ;
 }
 
+long mpc_ast_leaves_count(mpc_ast_t* t){
+	if(strstr(t->tag, "number")){
+		return 1;
+	}
+	int count = 1; //includes operator
+	if(strstr(t->children[2]->tag, "expr")){
+		count += mpc_ast_leaves_count(t->children[2]);
+	}
+	int i =3;
+	while(strstr(t->children[i]->tag, "expr")){
+		count += mpc_ast_leaves_count(t->children[i]);
+		i++;
+	}
+	return count ;
+}
+
+long mpc_ast_branch_count(mpc_ast_t* t){
+	//branch number = node number - 1
+	return mpc_ast_node_count(t) - 1;
+}
+
+#endif

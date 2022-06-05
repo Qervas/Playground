@@ -3,7 +3,7 @@
  * @Date: 2022-06-04 18:36:32
  * @LastEditors: FrankTudor
  * @Description: This file is created, edited, contributed by FrankTudor
- * @LastEditTime: 2022-06-04 21:20:48
+ * @LastEditTime: 2022-06-05 16:42:17
  */
 #include "mpc.h"
 #include "mpc_add_content.h"
@@ -32,6 +32,10 @@ long eval_op(long x, char* op, long y){//perform the corresponding calculation
 	if(strcmp(op, "*") == 0){return x * y;}
 	if(strcmp(op, "/") == 0){return x / y;}
 	if(strcmp(op, "%") == 0){return x % y;}
+	if(strcmp(op, "^") == 0){return pow(x,y);}
+	if(strcmp(op, "or") == 0){return x | y;}
+	if(strcmp(op, "and") == 0){return x & y;}
+	if(strcmp(op, "xor") == 0){return x ^ y;}
 	return 0;
 }
 
@@ -59,7 +63,7 @@ int main(int argc, char** argv){
 	mpca_lang(MPCA_LANG_DEFAULT, \
 		" \
 		number: /-?[0-9]+/ ; \
-		operator : '+' | '-' | '*' | '/' | '%' ; \
+		operator : '+' | '-' | '*' | '/' | '%' | '^' | /or/ | /and/ | /xor/; \
 		expr : <number> | '(' <operator> <expr>+ ')' ; \
 		lispy : /^/ <operator> <expr>+ /$/ ; \
 		",
@@ -74,8 +78,8 @@ int main(int argc, char** argv){
 		mpc_result_t r;
 		if(mpc_parse("<stdin>", input, Lispy, &r)){
 			long result = eval(r.output);
-			long node_count = mpc_ast_node_count(r.output);
-			printf("%li, node: %li\n", result,node_count);
+			long leaves_count = mpc_ast_leaves_count(r.output);
+			printf("%li, leaves: %li\n", result,leaves_count);
 			mpc_ast_delete(r.output);
 		}else{
 			mpc_err_print(r.error);
