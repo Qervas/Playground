@@ -3,7 +3,7 @@
  * @Date: 2022-06-04 20:30:04
  * @LastEditors: FrankTudor
  * @Description: This file is created, edited, contributed by FrankTudor
- * @LastEditTime: 2022-06-05 16:29:55
+ * @LastEditTime: 2022-06-05 16:51:58
  */
 #include "mpc_add_content.h"
 #define evaluation
@@ -93,7 +93,7 @@ long mpc_ast_leaves_count(mpc_ast_t* t){
 	if(strstr(t->tag, "number")){
 		return 1;
 	}
-	int count = 1; //includes operator
+	int count = 1; //each subtree includes operator
 	if(strstr(t->children[2]->tag, "expr")){
 		count += mpc_ast_leaves_count(t->children[2]);
 	}
