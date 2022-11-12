@@ -51,3 +51,4 @@ MultiThreads-WINAPI/Auxiliary/*.vcxproj
 MultiThreads-WINAPI/Auxiliary/*.sln
 
 .DS_Store
+.vscode
