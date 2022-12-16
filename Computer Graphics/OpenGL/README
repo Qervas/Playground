@@ -1,0 +1,3 @@
+## Dependency
+* glad: build from CMakeLists.txt in `${project_folder}/glad` 
+* glfw

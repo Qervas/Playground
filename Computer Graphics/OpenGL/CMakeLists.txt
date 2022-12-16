@@ -1,10 +1,55 @@
+# Minimum version of CMake required
 cmake_minimum_required(VERSION 3.0)
-project(opengl_app)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/glad)
+# Set project name and language
+project(opengl_app LANGUAGES CXX)
 
-add_executable(${PROJECT_NAME} ${CMAKE_SOURCE_DIR}/src/main.cpp)
-target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/glad)
-target_link_libraries(${PROJECT_NAME} glad glfw)
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/glad)
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set the output directory for executables
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+
+# Set the output directory for libraries
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+# Add the "include" directory to the include path
+# include_directories(${PROJECT_SOURCE_DIR}/include)
+
+# Add the "glad" directory to the include path
+include_directories(${PROJECT_SOURCE_DIR}/glad)
+
+# Add the glad subdirectory as a library
+add_subdirectory(glad)
+
+# build glad as a C static library
+# add_library(glad STATIC ${CMAKE_SOURCE_DIR}/glad/glad.c)
+
+
+# Set the linker language for the glad library
+# add_library(glad STATIC ${CMAKE_SOURCE_DIR}/glad/glad.c)
+set_target_properties(glad PROPERTIES LINKER_LANGUAGE CXX)
+
+
+# Add an executable target for each subdirectory under src/
+file(GLOB SUBDIRECTORIES "src/*")
+foreach(SUBDIRECTORY ${SUBDIRECTORIES})
+    get_filename_component(TARGET_NAME ${SUBDIRECTORY} NAME)
+
+    # Add all C++ files in the subdirectory as sources for the executable target
+    file(GLOB TARGET_SOURCES ${SUBDIRECTORY}/*.cpp)
+    add_executable(${TARGET_NAME} ${TARGET_SOURCES})
+	target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_BINARY_DIR}/lib) # libglad.a
+	target_link_libraries(${TARGET_NAME} LINK_PUBLIC glad glfw)
+
+endforeach()
+	
+
+
+
+
+
+
+
 
