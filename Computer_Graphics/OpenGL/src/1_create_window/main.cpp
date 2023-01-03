@@ -4,7 +4,6 @@
 
 int main(){
 
-	printf("ohaoniua\n");
 	// Initialize GLFW
 	glfwInit();
 
@@ -37,7 +36,7 @@ int main(){
 	//Load GLAD so it configures OpenGL
 	gladLoadGL();
 	// Specify the viewport of OpenGL in the Window
-	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+	// In this case the viewport goes from x = 0, y = 0, to x = 1024, y = 768
 	glViewport(0, 0, 1024, 768);
 
 

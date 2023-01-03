@@ -1,0 +1,13 @@
+## Dependency
+* glad: build from CMakeLists.txt in `${project_folder}/glad` 
+* glfw
+
+
+build the program 
+`chmod +x build.sh clean.sh`
+`./build.sh`
+
+execute the program
+`./build/bin/1_create_window`
+
+
