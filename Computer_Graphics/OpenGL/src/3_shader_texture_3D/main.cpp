@@ -7,11 +7,16 @@
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
 
-#include "shaderClass.h"
-#include "Texture.h"
-#include "VAO.h"
-#include "VBO.h"
-#include "EBO.h"
+#include "3_shader_texture_3D/shaderClass.h"
+#include "3_shader_texture_3D/Texture.h"
+#include "3_shader_texture_3D/VAO.h"
+#include "3_shader_texture_3D/VBO.h"
+#include "3_shader_texture_3D/EBO.h"
+// #include " shaderClass.h"
+// #include "Texture.h"
+// #include "VAO.h"
+// #include "VBO.h"
+// #include "EBO.h"
 
 #include<filesystem>
 namespace fs = std::filesystem;
@@ -72,7 +77,7 @@ int main(){
 	glViewport(0, 0, width, height);
 
 	
-	Shader shaderProgram("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
+	Shader shaderProgram("Resources/Shaders/3_shader_texture_3D/default.vert", "Resources/Shaders/3_shader_texture_3D/default.frag");
 
 	VAO VAO1;
 	VAO1.Bind();
@@ -130,8 +135,8 @@ int main(){
 
 		// Assigns different transformations to each matrix
 		model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-		view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-		proj = glm::perspective(glm::radians(35.0f), (float)width / height, 0.1f, 100.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.0f));
+		proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
 
 		// Outputs the matrices into the Vertex Shader
 		int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");

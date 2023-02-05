@@ -1,4 +1,4 @@
-#include "EBO.h"
+#include "3_shader_texture_3D/EBO.h"
 EBO::EBO(GLuint* indices, GLsizeiptr size){
 	glGenBuffers(1, &ID);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);

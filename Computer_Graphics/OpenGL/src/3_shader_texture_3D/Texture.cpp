@@ -1,4 +1,5 @@
-#include"Texture.h"
+// #include"Texture.h"
+#include "3_shader_texture_3D/Texture.h"
 
 Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType)
 {

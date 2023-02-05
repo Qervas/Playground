@@ -1,4 +1,5 @@
-#include "VBO.h"
+// #include "VBO.h"
+#include "3_shader_texture_3D/VBO.h"
 
 VBO::VBO(GLfloat* vertices, GLsizeiptr size){
 	glGenBuffers(1, &ID);
