@@ -8,7 +8,10 @@ data_handler::data_handler(){
 }
 
 data_handler::~data_handler(){
-
+	delete data_array;
+	delete training_data;
+	delete test_data;
+	delete validation_data;
 }
 
 void data_handler::read_feature_vector(const std::string& path){
