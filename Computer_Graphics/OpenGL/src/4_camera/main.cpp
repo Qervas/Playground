@@ -32,11 +32,7 @@ GLfloat vertices[] =
 	 0.0f, 0.8f,  0.0f,     0.0f, 0.0f, 0.0f,	2.5f, 5.0f
 };
 
-// 0.83f, 0.70f, 0.44f
-// 0.83f, 0.70f, 0.44f
-// 0.83f, 0.70f, 0.44f
-// 0.83f, 0.70f, 0.44f
-// 0.92f, 0.86f, 0.76f
+
 // Indices for vertices order
 GLuint indices[] =
 {
@@ -79,7 +75,7 @@ int main(){
 	glViewport(0, 0, width, height);
 
 	
-	Shader shaderProgram("Resources/Shaders/default.vert", "Resources/Shaders/default.frag");
+	Shader shaderProgram("Resources/Shaders/4_camera/default.vert", "Resources/Shaders/4_camera/default.frag");
 
 	VAO VAO1;
 	VAO1.Bind();
