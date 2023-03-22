@@ -1,3 +1,3 @@
 #!/bin/bash
 rm -rf build
-rm -rf glad/build
+rm -rf 3rd-party/glad/build
