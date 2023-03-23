@@ -14,6 +14,8 @@ public:
 
 private:
 	const char* file;
+	std::string  texPath;
+	std::string fileDir;
 	std::vector<unsigned char> data;
 	json JSON;
 

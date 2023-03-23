@@ -46,7 +46,7 @@ int main()
 
 	Shader outliningProgram("Resources/Shaders/9_stencil_culling/outlining.vert", "Resources/Shaders/9_stencil_culling/outlining.frag");
 
-
+	//related light
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
@@ -54,16 +54,13 @@ int main()
 
 
 	shaderProgram.Activate();
-
-	Shader lightShader("Resources/Shaders/9_stencil_culling/light.vert", "Resources/Shaders/9_stencil_culling/light.frag");
-	lightShader.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
 
 
 
-	// Enables the Depth Buffer
+	// Enables the Depth Buffer, Stencil buffer, Stencil tests rule
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -82,27 +79,34 @@ int main()
 		// Clean the back buffer and depth buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-
 		// Handles camera inputs
 		camera.Inputs(window);
 		// Updates and exports the camera matrix to the Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
-		//Draw a model
+		// Make it so the stencil test always passes
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		// Enable modifying of the stencil buffer
 		glStencilMask(0xFF);
+		// Draw the normal model
 		model.Draw(shaderProgram, camera);
 
+		// Make it so only the pixels without the value 1 pass the test
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		// Disable modifying of the stencil buffer
 		glStencilMask(0x00);
+		// Disable the depth buffer
 		glDisable(GL_DEPTH_TEST);
-		outliningProgram.Activate();
 		
 		outline.Draw(outliningProgram, camera);
 
+		// Enable modifying of the stencil buffer
 		glStencilMask(0xFF);
+		// Clear stencil buffer
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		// Enable the depth buffer
 		glEnable(GL_DEPTH_TEST);
+
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
@@ -113,7 +117,7 @@ int main()
 
 	// Delete all the objects we've created
 	shaderProgram.Delete();
-	lightShader.Delete();
+	outliningProgram.Delete();
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program

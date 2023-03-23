@@ -51,6 +51,8 @@ foreach(SUBDIRECTORY ${SUBDIRECTORIES})
 	target_link_libraries(${TARGET_NAME} LINK_PUBLIC glad glfw glut GL GLEW GLU freetype)
     
 endforeach()
+
+
     
     
 

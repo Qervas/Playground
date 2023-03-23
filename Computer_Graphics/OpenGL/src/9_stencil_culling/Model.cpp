@@ -5,8 +5,11 @@ Model::Model(const char* file){
 
 	JSON = json::parse(text);
 
+	std::string fileStr = std::string(file);
+	texPath = fileStr.substr(0, fileStr.find_last_of('/') + 1) + std::string(JSON["buffers"][0]["uri"]);
+
 	Model::file = file;
-	data = getData();
+	data = getData(); // get .bin file content
 
 	traverseNode(0);
 
@@ -27,7 +30,7 @@ void Model::loadMesh(unsigned int indMesh){
 
 	unsigned int posAccInd = JSON[s_MESHES][indMesh][s_PRIMITIVES][0][s_ATTRIBUTES]["POSITION"];
 	unsigned int normalAccInd = JSON[s_MESHES][indMesh][s_PRIMITIVES][0][s_ATTRIBUTES]["NORMAL"];
-	unsigned int texAccInd = JSON[s_MESHES][indMesh][s_PRIMITIVES][0][s_ATTRIBUTES].value("TEXCOORD_0", 0);
+	unsigned int texAccInd = JSON[s_MESHES][indMesh][s_PRIMITIVES][0][s_ATTRIBUTES]["TEXCOORD_0"];
 	unsigned int indAccInd = JSON[s_MESHES][indMesh][s_PRIMITIVES][0]["indices"];
 
 
@@ -54,6 +57,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 	const char* s_CHILDREN = "children";
 	json node = JSON["nodes"][nextNode];
 
+	//get translation if exists
 	glm::vec3 translationV = glm::vec3(0.0f, 0.0f, 0.0f);
 	if(node.find(s_TRANSLATION) != node.end()){
 		float transValues[3];
@@ -62,6 +66,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 		}
 		translationV = glm::make_vec3(transValues);
 	}
+	// get rotation if exists
 	glm::quat rotationV = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 	if(node.find(s_ROTATION) != node.end()){
 		//GLTF encodes x, y, z, w
@@ -74,6 +79,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 		};
 		rotationV = glm::make_quat(rotValues);
 	}
+	// get scale if exists
 	glm::vec3 scaleV = glm::vec3(1.0f, 1.0f, 1.0f);
 	if(node.find(s_SCALE) != node.end()){
 		float scaleValues[3];
@@ -82,7 +88,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 		}
 		scaleV = glm::make_vec3(scaleValues);
 	}
-
+	// get matrix if exists
 	glm::mat4 matNode = glm::mat4(1.0f);
 	if(node.find(s_MATRIX) != node.end()){
 		float matValues[16];
@@ -96,13 +102,14 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 	glm::mat4 rotM = glm::mat4(1.0f);
 	glm::mat4 scaM = glm::mat4(1.0f);
 
-	transM = glm::translate(transM, translationV);
+	
+	transM = glm::translate(transM, translationV); 
 	rotM = glm::mat4_cast(rotationV);
 	scaM = glm::scale(scaM, scaleV);
 	
-	glm::mat4 matNextNode = matrix * matNode * transM * rotM * scaM;
+	glm::mat4 matNextNode = matrix * matNode * transM * rotM * scaM; //get matrix for next node
 
-	if(node.find(s_MESH) != node.end()){
+	if(node.find(s_MESH) != node.end()){//if node has a mesh
 		translationMeshes.emplace_back(translationV);
 		rotationsMeshes.emplace_back(rotationV);
 		scalesMeshes.emplace_back(scaleV);
@@ -122,12 +129,7 @@ void Model::traverseNode(unsigned int nextNode, glm::mat4 matrix){
 
 std::vector<unsigned char> Model::getData(){
 	std::string bytesText;
-	std::string uri = JSON["buffers"][0]["uri"];
-
-	std::string fileStr = std::string(file);
-	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
-	bytesText = get_file_contents((fileDirectory + uri).c_str());
-
+	bytesText = get_file_contents(texPath.c_str());
 	std::vector<unsigned char> data(bytesText.begin(), bytesText.end());
 	return data;
 }
@@ -150,6 +152,7 @@ std::vector<float> Model::getFloats(json accessor){
 	else if(type == "VEC4") numPerVert = 4;
 	else throw std::invalid_argument("Type is invalid(eg. SCALAR, VEC2, VEC3, VEC4)");
 
+	
 	unsigned int beginningOfData = byteOffset + accByteOffset;
 	unsigned int lengthOfData = count * 4 * numPerVert;
 	for(unsigned int i = beginningOfData; i < beginningOfData + lengthOfData; ){
@@ -205,12 +208,9 @@ std::vector<GLuint> Model::getIndices(json accessor){
 
 std::vector<Texture> Model::getTextures(){
 	std::vector<Texture> textures;
-	std::string fileStr = std::string(file);
-	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);
-
+	std::string texRootPath = texPath.substr(0, texPath.find_last_of("/") + 1 );
 	for(unsigned int i = 0; i < JSON["images"].size(); i++){
-		std::string texPath = JSON["images"][i]["uri"];
-
+		texPath = texRootPath +  std::string(JSON["images"][i]["uri"]);
 		bool skip = false;// if texture has already been loaded
 		for(unsigned int j = 0; j < loadedTexName.size(); j++){
 			if(loadedTexName[j] == texPath){
@@ -221,14 +221,14 @@ std::vector<Texture> Model::getTextures(){
 		}
 
 		if(!skip){
-			if(texPath.find("baseColor") != std::string::npos){ // if finds "baseColor" 
-				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
+			if(texPath.find("baseColor") != std::string::npos || texPath.find("duffuse") != std::string::npos){ // if finds "baseColor" 
+				Texture diffuse = Texture(texPath.c_str(), "diffuse", loadedTex.size());
 				textures.emplace_back(diffuse);
 				loadedTex.emplace_back(diffuse);
 				loadedTexName.emplace_back(texPath);
 			}
-			else if(texPath.find("metallicRoughness") != std::string::npos){
-				Texture specular = Texture((fileDirectory + texPath).c_str(), "specular", loadedTex.size());
+			else if(texPath.find("metallicRoughness") != std::string::npos || texPath.find("specular") != std::string::npos){
+				Texture specular = Texture(texPath.c_str(), "specular", loadedTex.size());
 				textures.emplace_back(specular);
 				loadedTex.emplace_back(specular);
 				loadedTexName.emplace_back(texPath);

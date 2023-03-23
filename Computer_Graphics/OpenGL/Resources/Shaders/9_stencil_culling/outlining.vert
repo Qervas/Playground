@@ -47,7 +47,7 @@ void main(){
     mat4 rot2 = rotate_XOZ_degree_c(90.0f);
     mat4 rot3 = rotate_YOZ_degree_c(90.0f);
     
-    float scale_factor = 1.05f;
+    mat4 scale_factor = mat4(1.02f);
 
     mat4 rotation_mod =  rot1 * rot3 * rotation; // fix model position
     
