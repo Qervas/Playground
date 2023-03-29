@@ -2,6 +2,7 @@
 
 #include "lve_window.hpp"
 #include "lve_pipeline.hpp"
+#include "lve_device.hpp"
 #include <filesystem>
 namespace lve{
 	class Triangle{
@@ -16,7 +17,11 @@ namespace lve{
 			void run();
 
 		private:
-			LVEWindow lve_window{WIDTH, HEIGHT, "Hello World!"};
-			LVEPipeline lve_pipeline{prefix + "default.vert.spv", prefix + "default.frag.spv"};
+			LVEWindow _lve_window{WIDTH, HEIGHT, "Hello World!"};
+			LVEDevice _lve_device{_lve_window};
+			LVEPipeline lve_pipeline{ _lve_device,
+									prefix + "default.vert.spv",
+									prefix + "default.frag.spv",
+									LVEPipeline::defaultPipelineConfigInfo(WIDTH, HEIGHT)};
 	};
 };

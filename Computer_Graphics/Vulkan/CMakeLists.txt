@@ -7,7 +7,7 @@ project(VulkanAPP LANGUAGES CXX)
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
 
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmodules-ts")
 set(CMAKE_BUILD_TYPE Debug)
@@ -37,7 +37,7 @@ foreach(SUBDIRECTORY ${SUBDIRECTORIES})
     target_compile_definitions(${TARGET_NAME} PRIVATE VK_USE_PLATFORM_XLIB_KHR)
     target_include_directories(${TARGET_NAME} PRIVATE ${X11_INCLUDE_DIR})
 	# target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_BINARY_DIR}/lib) # precompiled libs
-	target_link_libraries(${TARGET_NAME} LINK_PUBLIC vulkan X11 m glfw3)
+	target_link_libraries(${TARGET_NAME} LINK_PUBLIC vulkan X11 m glfw)
     
 endforeach()
 

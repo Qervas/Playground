@@ -7,7 +7,7 @@ namespace lve{
 	}
 	
 	void Triangle::run(){
-		while(!lve_window.shouldClose()){
+		while(!_lve_window.shouldClose()){
 			glfwPollEvents();
 		}
 	}

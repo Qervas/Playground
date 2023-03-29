@@ -1,5 +1,5 @@
 #include "1_triangle/lve_window.hpp"
-
+#include <stdexcept>
 namespace lve{
 	LVEWindow::LVEWindow(int width, int height, std::string window_name)
 				: _width(width), _height(height), _window_name(window_name){
@@ -25,8 +25,8 @@ namespace lve{
 	}
 
 	void LVEWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface){
-		if(glfwCreateWindowSurface(instance, _window, nullptr, surface)){
-			throw std::__throw_runtime_error("failed to create a window surface");
+		if(glfwCreateWindowSurface(instance, _window, nullptr, surface) != VK_SUCCESS){
+			throw std::runtime_error("failed to create a window surface");
 		}
 		
 
