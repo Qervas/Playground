@@ -2,10 +2,13 @@
 
 #include<iostream>
 #include<cstdlib>
-
+#include <iostream>
+#include<filesystem>
+#include<string>
+namespace fs = std::filesystem;
 int main(int argc, char** argv){
 	lve::Triangle app{};
-
+	
 	try	{
 		app.run();
 	}

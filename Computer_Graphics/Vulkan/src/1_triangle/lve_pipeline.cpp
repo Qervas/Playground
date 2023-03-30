@@ -40,8 +40,8 @@ namespace lve{
 											 const std::string& frag_file_path,
 											 const PipelineConfigInfo& config_info){
 		
-		assert(config_info.pipeline_layout !=  VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided n config_info");
-		assert(config_info.render_pass !=  VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderpass provided n config_info");
+		assert(config_info.pipeline_layout ==  VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided n config_info");
+		assert(config_info.render_pass ==  VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderpass provided n config_info");
 		auto vert_code = readFile(vert_file_path);
 		auto frag_code = readFile(frag_file_path);
 

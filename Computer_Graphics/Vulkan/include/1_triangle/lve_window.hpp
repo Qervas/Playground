@@ -13,6 +13,7 @@ namespace lve{
 			LVEWindow &operator=(const LVEWindow&)=delete;
 
 			bool shouldClose();
+			VkExtent2D getExtent();
 			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 		private:
 			GLFWwindow* _window;

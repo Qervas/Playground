@@ -15,6 +15,10 @@ namespace lve{
 		return glfwWindowShouldClose(_window);
 	}
 
+	VkExtent2D LVEWindow::getExtent(){
+		return {static_cast<uint32_t>(_width), static_cast<uint32_t>(_height)};
+	}
+
 	void LVEWindow::initWindow(){
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
