@@ -18,8 +18,8 @@
 #include<filesystem>
 namespace fs = std::filesystem;
 
-const unsigned int width = 800;
-const unsigned int height = 800;
+const unsigned int width = 1920;
+const unsigned int height = 1080;
 
 
 // Vertices coordinates
@@ -76,7 +76,6 @@ int main(){
 	// Tell GLFW we are using the CORE profile
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "My Triangle"
 	GLFWwindow* window = glfwCreateWindow(width, height, "Edit fragment shader to try different types of light", NULL, NULL);
 	// Error check if the window fails to create

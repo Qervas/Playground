@@ -16,9 +16,9 @@ Model::Model(const char* file){
 }
 
 void Model::Draw(Shader& shader, Camera& camera, 
-					glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f),
-					glm::quat rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f),
-					glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f)){
+					glm::vec3 translation,
+					glm::quat rotation,
+					glm::vec3 scale){
 						
 	for( unsigned int i = 0; i < meshes.size(); i++){
 		meshes[i].Mesh::Draw(shader, camera, matricesMeshes[i]);

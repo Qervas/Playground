@@ -49,6 +49,8 @@ foreach(SUBDIRECTORY ${SUBDIRECTORIES})
     add_executable(${TARGET_NAME} ${TARGET_SOURCES})
 	target_link_directories(${TARGET_NAME} PUBLIC ${CMAKE_BINARY_DIR}/lib) # libglad.a
 	target_link_libraries(${TARGET_NAME} LINK_PUBLIC glad glfw glut GL GLEW GLU )
+
+
     
 endforeach()
 

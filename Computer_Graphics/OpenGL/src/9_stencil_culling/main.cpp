@@ -45,8 +45,8 @@ int main()
 	// Generates Shader object using shaders default.vert and default.frag
 	Shader shaderProgram( (shaderDir + "default.vert").c_str(), (shaderDir + "default.frag").c_str());
 	Shader outliningProgram( (shaderDir + "outlining.vert").c_str(), (shaderDir + "outlining.frag").c_str());
-	Shader grassProgram((shaderDir + "default.vert").c_str(),  (shaderDir + "grass.frag").c_str());
-
+	// Shader grassProgram((shaderDir + "default.vert").c_str(),  (shaderDir + "grass.frag").c_str());
+	
 	//related light
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -56,9 +56,9 @@ int main()
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	grassProgram.Activate();
-	glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	// grassProgram.Activate();
+	// glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	// glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
 
 
@@ -78,7 +78,9 @@ int main()
 	std::string model_dir = fs::current_path().string() + "/Resources/Models/";
 	Model model((model_dir + "wooden/scene.gltf").c_str());
 	Model outline((model_dir + "wooden_outline/wooden_outline.gltf").c_str());
-	Model grass((model_dir + "plants/scene.gltf").c_str());
+	// Model grass((model_dir + "plants/scene.gltf").c_str());
+	//todo: use tutorial texture, grass texture
+
 
 	double prevTime = 0.0;
 	double crntTime = 0.0;
@@ -134,7 +136,7 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		glDisable(GL_CULL_FACE);
-		grass.Draw(grassProgram, camera);
+		// grass.Draw(grassProgram, camera);
 		glEnable(GL_CULL_FACE);
 
 		// Swap the back buffer with the front buffer
@@ -148,7 +150,7 @@ int main()
 	// Delete all the objects we've created
 	shaderProgram.Delete();
 	outliningProgram.Delete();
-	grassProgram.Delete();
+	// grassProgram.Delete();
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
