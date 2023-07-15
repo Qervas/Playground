@@ -1,9 +1,12 @@
 #include "1_triangle/triangle.hpp"
+
+
 #include <stdexcept>
 #include <array>
 
 namespace lve{
 	Triangle::Triangle(){
+		loadModels();
 		createPipelineLayout();
 		createPipeline();
 		createCommandBuffers();
@@ -11,7 +14,6 @@ namespace lve{
 
 	Triangle::~Triangle(){
 		vkDestroyPipelineLayout(_lve_device.device(), _pipeline_layout, nullptr);
-		// vkDestroyPipeline(_lve_device.device(), _lve_pipeline, nullptr);
 	}
 	
 	void Triangle::run(){
@@ -21,6 +23,33 @@ namespace lve{
 		}
 
 		vkDeviceWaitIdle(_lve_device.device());
+
+	}
+
+	void Triangle::sierpinski(std::vector<LVEModel::Vertex> &vertices,
+								int depth,
+								glm::vec2 left,
+								glm::vec2 right,
+								glm::vec2 top){
+
+		  if (depth <= 0) {
+			vertices.push_back({top});
+			vertices.push_back({right});
+			vertices.push_back({left});
+		} else {
+			auto leftTop = 0.5f * (left + top);
+			auto rightTop = 0.5f * (right + top);
+			auto leftRight = 0.5f * (left + right);
+			sierpinski(vertices, depth - 1, left, leftRight, leftTop);
+			sierpinski(vertices, depth - 1, leftRight, right, rightTop);
+			sierpinski(vertices, depth - 1, leftTop, rightTop, top);
+		}
+	}
+
+	void Triangle::loadModels(){
+		std::vector<LVEModel::Vertex> vertices{};
+		sierpinski(vertices, 10, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
+		_lve_model = std::make_unique<LVEModel>(_lve_device, vertices);
 	}
 
 	void Triangle::createPipelineLayout(){
@@ -85,8 +114,10 @@ namespace lve{
 			vkCmdBeginRenderPass(_command_buffer[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
 			_lve_pipeline->bind(_command_buffer[i]);
-			vkCmdDraw(_command_buffer[i], 3, 1, 0, 0);	
-			vkCmdEndRenderPass(_command_buffer[i]);
+			_lve_model->bind(_command_buffer[i]);
+			_lve_model->draw(_command_buffer[i]);
+			//// vkCmdDraw(_command_buffer[i], 3, 1, 0, 0);	
+			//// vkCmdEndRenderPass(_command_buffer[i]);
 
 			if( VK_SUCCESS != vkEndCommandBuffer(_command_buffer[i])){
 				throw std::runtime_error("failed to record command buffer");

@@ -1,4 +1,6 @@
 #include "1_triangle/lve_pipeline.hpp"
+#include "1_triangle/lve_model.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <cassert>
@@ -65,12 +67,15 @@ namespace lve{
 		shader_stages[1].pNext = nullptr;
 		shader_stages[1].pSpecializationInfo = nullptr;
 
+		auto attribute_descriptions = LVEModel::Vertex::get_attribute_descriptions();
+		auto binding_descriptions = LVEModel::Vertex::get_binding_descriptions();
+
 		VkPipelineVertexInputStateCreateInfo vertex_input_info{};
 		vertex_input_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertex_input_info.vertexAttributeDescriptionCount = 0; // no vertex attributes
-		vertex_input_info.vertexBindingDescriptionCount = 0; // no vertex bindings
-		vertex_input_info.pVertexAttributeDescriptions = nullptr; // no vertex attributes
-		vertex_input_info.pVertexBindingDescriptions = nullptr; // no vertex bindings
+		vertex_input_info.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size()); // no vertex attributes
+		vertex_input_info.vertexBindingDescriptionCount = static_cast<uint32_t>(binding_descriptions.size()); // no vertex bindings
+		vertex_input_info.pVertexAttributeDescriptions = attribute_descriptions.data(); // no vertex attributes
+		vertex_input_info.pVertexBindingDescriptions = binding_descriptions.data(); // no vertex bindings
 
 		VkPipelineViewportStateCreateInfo viewport_info{};
 		viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
