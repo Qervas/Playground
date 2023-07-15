@@ -1,11 +1,11 @@
 #include "1_triangle/lve_device.hpp"
-
+#include  "user_defined.h"
 // std headers
 #include <cstring>
 #include <iostream>
 #include <set>
 #include <unordered_set>
-
+#include 
 namespace lve {
 
 // local callback functions
@@ -120,7 +120,7 @@ void LVEDevice::pickPhysicalDevice() {
   for (const auto &device : devices) {
     VkPhysicalDeviceProperties deviceProps;
     vkGetPhysicalDeviceProperties(device, &deviceProps);
-    if (std::string(deviceProps.deviceName).find("GeForce RTX 4060") != std::string::npos &&
+    if (std::string(deviceProps.deviceName).find(DEVICE_NAME) != std::string::npos &&
       deviceProps.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
       physicalDevice = device;
       break;
