@@ -15,6 +15,7 @@ namespace lve{
 			bool shouldClose();
 			VkExtent2D getExtent();
 			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+			GLFWwindow* getWindow() const;
 		private:
 			GLFWwindow* _window;
 			const int _width;

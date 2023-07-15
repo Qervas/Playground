@@ -6,7 +6,7 @@ namespace lve{
 					initWindow();
 				}
 
-	LVEWindow::~LVEWindow(){
+	LVEWindow::~LVEWindow(){ 
 		glfwDestroyWindow(_window);
 		glfwTerminate();
 	}
@@ -25,7 +25,7 @@ namespace lve{
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		_window = glfwCreateWindow(_width, _height, _window_name.c_str(), nullptr, nullptr);
-
+		glfwMakeContextCurrent(_window);
 	}
 
 	void LVEWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface){

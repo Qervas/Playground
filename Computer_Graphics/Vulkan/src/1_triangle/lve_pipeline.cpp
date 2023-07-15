@@ -119,6 +119,11 @@ namespace lve{
 		}
 	}
 
+	void LVEPipeline::bind(VkCommandBuffer command_buffer){
+		vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _graphics_pipeline);
+		
+	}
+
 	PipelineConfigInfo LVEPipeline::defaultPipelineConfigInfo(uint32_t width, uint32_t height){
 		PipelineConfigInfo config_info{};
 		config_info.input_assembly_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
