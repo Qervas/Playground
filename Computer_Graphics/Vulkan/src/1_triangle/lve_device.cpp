@@ -5,7 +5,6 @@
 #include <iostream>
 #include <set>
 #include <unordered_set>
-#include 
 namespace lve {
 
 // local callback functions
