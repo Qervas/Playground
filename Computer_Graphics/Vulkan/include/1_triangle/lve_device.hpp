@@ -21,23 +21,22 @@ struct QueueFamilyIndices {
   bool presentFamilyHasValue = false;
   bool isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
 };
-
 class LVEDevice {
  public:
 #ifdef NDEBUG
   const bool enableValidationLayers = false;
 #else
   const bool enableValidationLayers = true;
-#endif
+#endif 
 
   LVEDevice(LVEWindow &window);
   ~LVEDevice();
 
   // Not copyable or movable
-  // LVEDevice(const LVEDevice &) = delete;
-  // void operator=(const LVEDevice &) = delete;
-  // LVEDevice(LVEDevice &&) = delete;
-  // LVEDevice &operator=(LVEDevice &&) = delete;
+  LVEDevice(const LVEDevice &) = delete;
+  LVEDevice& operator=(const LVEDevice &) = delete;
+  LVEDevice(LVEDevice &&) = delete;
+  LVEDevice &operator=(LVEDevice &&) = delete;
 
   VkCommandPool getCommandPool() { return commandPool; }
   VkDevice device() { return device_; }

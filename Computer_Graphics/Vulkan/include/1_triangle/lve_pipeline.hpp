@@ -23,6 +23,7 @@ namespace lve{
 
 	class LVEPipeline{
 		public:
+			LVEPipeline() = default;
 			LVEPipeline(LVEDevice &device,
 						const std::string& vert_file_path,
 						const std::string& frag_file_path,
@@ -30,7 +31,7 @@ namespace lve{
 			~LVEPipeline();
 
 			LVEPipeline(const LVEPipeline&) = delete;
-			void operator=(const LVEPipeline&) = delete;
+			LVEPipeline& operator=(const LVEPipeline&) = delete;
 
 			void bind(VkCommandBuffer command_buffer);
 

@@ -8,6 +8,7 @@
 // std lib headers
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace lve {
 
@@ -19,7 +20,7 @@ class LVESwapChain {
   ~LVESwapChain();
 
   LVESwapChain(const LVESwapChain &) = delete;
-  void operator=(const LVESwapChain &) = delete;
+  LVESwapChain& operator=(const LVESwapChain &) = delete;
 
   VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
   VkRenderPass getRenderPass() { return renderPass; }
@@ -68,7 +69,7 @@ class LVESwapChain {
   LVEDevice &device;
   VkExtent2D windowExtent;
 
-  VkSwapchainKHR swapChain;
+  VkSwapchainKHR swapChain{nullptr};
 
   std::vector<VkSemaphore> imageAvailableSemaphores;
   std::vector<VkSemaphore> renderFinishedSemaphores;

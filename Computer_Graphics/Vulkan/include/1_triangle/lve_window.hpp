@@ -12,15 +12,27 @@ namespace lve{
 			~LVEWindow();
 			LVEWindow &operator=(const LVEWindow&)=delete;
 
-			bool shouldClose();
+			void setWidth(int width);
+			void setHeight(int height);
+			void setWindowResizedFlag(bool flag);
 			VkExtent2D getExtent();
-			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 			GLFWwindow* getWindow() const;
+			bool shouldClose();
+			bool isWindowResized();
+			void resetWindowResizedFlag();
+			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+			
+			
 		private:
+			
 			GLFWwindow* _window;
-			const int _width;
-			const int _height;
+			int _width;
+			int _height;
+			bool _framebuffer_resized = false;
 			std::string _window_name;
+			
+			
+			static void framebufferResizeCallback(GLFWwindow* window, int width, int height); 
 			void initWindow();
 	};
 };
