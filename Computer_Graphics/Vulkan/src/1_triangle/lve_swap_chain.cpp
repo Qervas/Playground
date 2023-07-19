@@ -22,6 +22,22 @@ LVESwapChain::LVESwapChain(LVEDevice &deviceRef, VkExtent2D extent)
 }
 
 LVESwapChain::~LVESwapChain() {
+  // cleanup synchronization objects
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
+    vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
+    vkDestroyFence(device.device(), inFlightFences[i], nullptr);
+  }
+  for (auto framebuffer : swapChainFramebuffers) {
+    vkDestroyFramebuffer(device.device(), framebuffer, nullptr);
+  }
+  for (int i = 0; i < depthImages.size(); i++) {
+    vkDestroyImageView(device.device(), depthImageViews[i], nullptr);
+    vkDestroyImage(device.device(), depthImages[i], nullptr);
+    vkFreeMemory(device.device(), depthImageMemorys[i], nullptr);
+  }
+  vkDestroyRenderPass(device.device(), renderPass, nullptr);
+
   for (auto imageView : swapChainImageViews) {
     vkDestroyImageView(device.device(), imageView, nullptr);
   }
@@ -31,26 +47,10 @@ LVESwapChain::~LVESwapChain() {
     vkDestroySwapchainKHR(device.device(), swapChain, nullptr);
     swapChain = nullptr;
   }
-
-  for (int i = 0; i < depthImages.size(); i++) {
-    vkDestroyImageView(device.device(), depthImageViews[i], nullptr);
-    vkDestroyImage(device.device(), depthImages[i], nullptr);
-    vkFreeMemory(device.device(), depthImageMemorys[i], nullptr);
-  }
-
-  for (auto framebuffer : swapChainFramebuffers) {
-    vkDestroyFramebuffer(device.device(), framebuffer, nullptr);
-  }
-
-  vkDestroyRenderPass(device.device(), renderPass, nullptr);
-
-  // cleanup synchronization objects
-  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-    vkDestroySemaphore(device.device(), renderFinishedSemaphores[i], nullptr);
-    vkDestroySemaphore(device.device(), imageAvailableSemaphores[i], nullptr);
-    vkDestroyFence(device.device(), inFlightFences[i], nullptr);
-  }
 }
+
+
+
 
 VkResult LVESwapChain::acquireNextImage(uint32_t *imageIndex) {
   vkWaitForFences(
@@ -120,12 +120,12 @@ VkResult LVESwapChain::submitCommandBuffers(
 }
 
 void LVESwapChain::createSwapChain() {
+
   SwapChainSupportDetails swapChainSupport = device.getSwapChainSupport();
 
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
   VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
   if (swapChainSupport.capabilities.maxImageCount > 0 &&
       imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -164,7 +164,8 @@ void LVESwapChain::createSwapChain() {
 
   createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-  if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+  
+  if ( vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain!");
   }
 
@@ -362,7 +363,7 @@ void LVESwapChain::createSyncObjects() {
 VkSurfaceFormatKHR LVESwapChain::chooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR> &availableFormats) {
   for (const auto &availableFormat : availableFormats) {
-    if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
         availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
     }

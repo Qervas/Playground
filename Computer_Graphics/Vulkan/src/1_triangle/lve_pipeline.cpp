@@ -15,7 +15,6 @@ namespace lve{
 	}
 
 	LVEPipeline::~LVEPipeline(){
-		vkDestroyShaderModule(_lve_device.device(), _vert_shader_module, nullptr);
 		vkDestroyShaderModule(_lve_device.device(), _frag_shader_module, nullptr);
 		vkDestroyPipeline(_lve_device.device(),_graphics_pipeline, nullptr);
 		// vkDestroyDevice(_lve_device.device(), nullptr);

@@ -8,7 +8,7 @@ namespace lve{
 	Triangle::Triangle(){
 		loadModels();
 		createPipelineLayout();
-		createPipeline();
+		recreateSwapChain();
 		createCommandBuffers();
 	}
 
@@ -18,6 +18,11 @@ namespace lve{
 	
 	void Triangle::run(){
 		while(!_lve_window.shouldClose()){
+			if(glfwGetKey(_lve_window.getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS){
+				glfwWindowShouldClose(_lve_window.getWindow());
+				break;
+			}
+			glfwSwapBuffers(_lve_window.getWindow());
 			glfwPollEvents();
 			drawFrame();
 		}
@@ -33,9 +38,9 @@ namespace lve{
 								glm::vec2 top){
 
 		  if (depth <= 0) {
-			vertices.push_back({top});
-			vertices.push_back({right});
-			vertices.push_back({left});
+			vertices.push_back({{top}, {1.0f, 0.0f, 0.0f}});
+			vertices.push_back({{right}, {0.0f, 1.0f, 0.0f}});
+			vertices.push_back({{left}, {0.0f, 0.0f, 1.0f}});
 		} else {
 			auto leftTop = 0.5f * (left + top);
 			auto rightTop = 0.5f * (right + top);
@@ -48,7 +53,7 @@ namespace lve{
 
 	void Triangle::loadModels(){
 		std::vector<LVEModel::Vertex> vertices{};
-		sierpinski(vertices, 10, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
+		sierpinski(vertices, 3, {-0.5f, 0.5f}, {0.5f, 0.5f}, {0.0f, -0.5f});
 		_lve_model = std::make_unique<LVEModel>(_lve_device, vertices);
 	}
 
@@ -67,8 +72,9 @@ namespace lve{
 	}
 
 	void Triangle::createPipeline(){
-		auto pipeline_config = LVEPipeline::defaultPipelineConfigInfo(_lve_swap_chain.width(), _lve_swap_chain.height());
-		pipeline_config.render_pass = _lve_swap_chain.getRenderPass();
+		auto pipeline_config = LVEPipeline::defaultPipelineConfigInfo(_lve_swap_chain->width(), _lve_swap_chain->height());
+		auto width = _lve_swap_chain->width(), height = _lve_swap_chain->height();
+		pipeline_config.render_pass = _lve_swap_chain->getRenderPass();
 		pipeline_config.pipeline_layout = _pipeline_layout;
 		_lve_pipeline = std::make_unique<LVEPipeline>(_lve_device, 
 														"build/shaders/1_triangle/default.vert.spv",
@@ -78,7 +84,7 @@ namespace lve{
 	}
 
 	void Triangle::createCommandBuffers(){
-		_command_buffer.resize(_lve_swap_chain.imageCount());
+		_command_buffer.resize(_lve_swap_chain->imageCount());
 		VkCommandBufferAllocateInfo alloc_info{};
 		alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -89,21 +95,37 @@ namespace lve{
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
 
-		for( int i = 0; i < _command_buffer.size(); i++){
+	}
+
+
+
+	void Triangle::recreateSwapChain(){
+		auto extent = _lve_window.getExtent();	
+		while(extent.width == 0 || extent.height == 0){
+			extent = _lve_window.getExtent();
+			glfwWaitEvents();
+		}
+
+		vkDeviceWaitIdle(_lve_device.device());
+		_lve_swap_chain = nullptr;
+		_lve_swap_chain = std::make_unique<LVESwapChain>(_lve_device, extent);
+		createPipeline();
+	}
+
+	void Triangle::recordCommandBuffer(int image_index){
 			VkCommandBufferBeginInfo begin_info{};
 			begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-			if(vkBeginCommandBuffer(_command_buffer[i], &begin_info)){
+			if(vkBeginCommandBuffer(_command_buffer[image_index], &begin_info)){
 				throw std::runtime_error("failed to begin recording command buffer!");
 			}
 
 			VkRenderPassBeginInfo render_pass_info{};
 			render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			render_pass_info.renderPass = _lve_swap_chain.getRenderPass();
-			render_pass_info.framebuffer = _lve_swap_chain.getFrameBuffer(i);
+			render_pass_info.renderPass = _lve_swap_chain->getRenderPass();
+			render_pass_info.framebuffer = _lve_swap_chain->getFrameBuffer(image_index);
 
 			render_pass_info.renderArea.offset = {0, 0};
-			render_pass_info.renderArea.extent = _lve_swap_chain.getSwapChainExtent();
+			render_pass_info.renderArea.extent = _lve_swap_chain->getSwapChainExtent();
 
 			std::array<VkClearValue, 2> clear_value{};
 			clear_value[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
@@ -111,32 +133,41 @@ namespace lve{
 			render_pass_info.clearValueCount = static_cast<uint32_t>(clear_value.size());
 			render_pass_info.pClearValues = clear_value.data();
 
-			vkCmdBeginRenderPass(_command_buffer[i], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+			vkCmdBeginRenderPass(_command_buffer[image_index], &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 
-			_lve_pipeline->bind(_command_buffer[i]);
-			_lve_model->bind(_command_buffer[i]);
-			_lve_model->draw(_command_buffer[i]);
+			_lve_pipeline->bind(_command_buffer[image_index]);
+			_lve_model->bind(_command_buffer[image_index]);
+			_lve_model->draw(_command_buffer[image_index]);
 			//// vkCmdDraw(_command_buffer[i], 3, 1, 0, 0);	
 			//// vkCmdEndRenderPass(_command_buffer[i]);
 
-			if( VK_SUCCESS != vkEndCommandBuffer(_command_buffer[i])){
+			if( VK_SUCCESS != vkEndCommandBuffer(_command_buffer[image_index])){
 				throw std::runtime_error("failed to record command buffer");
 			}
-		}
 	}
 
 	void Triangle::drawFrame(){
 		uint32_t image_index;
-		auto result = _lve_swap_chain.acquireNextImage(&image_index);
+		auto result = _lve_swap_chain->acquireNextImage(&image_index);
+
+		if(result == VK_ERROR_OUT_OF_DATE_KHR){
+			recreateSwapChain();
+			return ;
+		}
 
 		if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR){
 			throw std::runtime_error("failed to acquire swap chain  image!");
 		}
 
-		result = _lve_swap_chain.submitCommandBuffers(&_command_buffer[image_index], &image_index);
+		recordCommandBuffer(image_index);
+		result = _lve_swap_chain->submitCommandBuffers(&_command_buffer[image_index], &image_index);
+		if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _lve_window.isWindowResized()){
+			_lve_window.resetWindowResizedFlag();
+			recreateSwapChain();
+			return;
+		}
 		if(result != VK_SUCCESS){
 			throw std::runtime_error("failed to present swap chain image!");
 		}
-
 	}
 };
