@@ -20,26 +20,33 @@ vec2 offsets[9] = vec2[](
 	vec2(offset_x, -offset_y) //bottom right
 
 );
-//edge detection
-float kernel[9] = float[](
-	1.0f, 1.0f, 1.0f,
-	1.0f, -8.0f, 1.0f,
-	1.0f, 1.0f, 1.0f
-);
+// //edge detection
+// float kernel[9] = float[](
+// 	1.0f, 1.0f, 1.0f,
+// 	1.0f, -8.0f, 1.0f,
+// 	1.0f, 1.0f, 1.0f
+// );
 
-//blur
+// //Guassian blur
 // float kernel[9] = float[](
 // 	1.0f / 16, 2.0f / 16, 1.0f / 16,
 // 	2.0f / 16, 4.0f / 16, 2.0f / 16,
 // 	1.0f / 16, 2.0f / 16, 1.0f / 16
 // );
 
-//sharpen
+// //pixelation
 // float kernel[9] = float[](
-//     -1, -1, -1,
-//     -1,  9, -1,
-//     -1, -1, -1
+// 	0.25f, 0.25f, 0.25f,
+// 	0.25f, 0.25f, 0.25f,
+// 	0.25f, 0.25f, 0.25f
 // );
+
+// sharpen
+float kernel[9] = float[](
+    -1, -1, -1,
+    -1,  9, -1,
+    -1, -1, -1
+);
 
 void main(){
 	vec3 color = vec3(0.0f);
