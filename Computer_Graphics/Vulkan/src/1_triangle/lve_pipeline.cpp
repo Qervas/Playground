@@ -197,11 +197,6 @@ namespace lve{
 		config_info.depth_stenci_info.front = {};
 		config_info.depth_stenci_info.back = {};
 
-
-
-
-		
-
 		return config_info;
 	}
 };
