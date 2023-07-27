@@ -8,7 +8,17 @@ namespace fs = std::filesystem;
 const unsigned int width = 1920;
 const unsigned int height = 1080;
 
- 
+float rectangleVertices[] = {
+	// Coords    // texCoords
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f, -1.0f,  0.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f,
+
+	 1.0f,  1.0f,  1.0f, 1.0f,
+	 1.0f, -1.0f,  1.0f, 0.0f,
+	-1.0f,  1.0f,  0.0f, 1.0f
+};
+
 
 
 int main()
@@ -43,9 +53,9 @@ int main()
 
 	std::string shaderDir = "Resources/Shaders/9_stencil_culling/";
 	// Generates Shader object using shaders default.vert and default.frag
-	Shader shaderProgram( (shaderDir + "default.vert").c_str(), (shaderDir + "default.frag").c_str());
-	Shader outliningProgram( (shaderDir + "outlining.vert").c_str(), (shaderDir + "outlining.frag").c_str());
-	// Shader grassProgram((shaderDir + "default.vert").c_str(),  (shaderDir + "grass.frag").c_str());
+	Shader shaderProgram( (shaderDir + "default.vert").c_str(), (shaderDir + "default.frag").c_str(), (shaderDir + "default.geom").c_str());
+	Shader outliningProgram( (shaderDir + "outlining.vert").c_str(), (shaderDir + "outlining.frag").c_str(), nullptr);
+	Shader framebufferProgram( (shaderDir + "framebuffer.vert").c_str(), (shaderDir + "framebuffer.frag").c_str(), nullptr);
 	
 	//related light
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -56,9 +66,8 @@ int main()
 	shaderProgram.Activate();
 	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	// grassProgram.Activate();
-	// glUniform4f(glGetUniformLocation(grassProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	// glUniform3f(glGetUniformLocation(grassProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	framebufferProgram.Activate();
+	glUniform1i(glGetUniformLocation(framebufferProgram.ID, "screenTexture"), 0);
 
 
 
@@ -78,8 +87,19 @@ int main()
 	std::string model_dir = fs::current_path().string() + "/Resources/Models/";
 	Model model((model_dir + "wooden/scene.gltf").c_str());
 	Model outline((model_dir + "wooden_outline/wooden_outline.gltf").c_str());
-	// Model grass((model_dir + "plants/scene.gltf").c_str());
-	//todo: use tutorial texture, grass texture
+
+
+	unsigned int rectVAO, rectVBO;
+	glGenVertexArrays(1, &rectVAO);
+	glGenBuffers(1, &rectVBO);
+	glBindVertexArray(rectVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectangleVertices), &rectangleVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
 
 
 	double prevTime = 0.0;
@@ -87,8 +107,42 @@ int main()
 	double timeDiff;
 	unsigned int counter = 0;
 
+	unsigned int FBO;
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+	unsigned int framebufferTexture;
+	glGenTextures(1, &framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+
+	unsigned int RBO;
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if( fboStatus != GL_FRAMEBUFFER_COMPLETE){
+		std::cout << "Framebuffer error:" << fboStatus << std::endl;
+	}
+
+
+
+
+
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window)){
+
+		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
+	        glfwSetWindowShouldClose(window, GL_TRUE);		
+		}
 
 		crntTime = glfwGetTime();
 		timeDiff = crntTime - prevTime;
@@ -102,10 +156,13 @@ int main()
 
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		// Specify the color of the background
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		// Clean the back buffer and depth buffer
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		glEnable(GL_DEPTH_TEST);
 
 		// Handles camera inputs
 		camera.Inputs(window);
@@ -119,25 +176,33 @@ int main()
 		// Draw the normal model
 		model.Draw(shaderProgram, camera);
 
-		// Make it so only the pixels without the value 1 pass the test
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		// Disable modifying of the stencil buffer
-		glStencilMask(0x00);
-		// Disable the depth buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		framebufferProgram.Activate();
+		glBindVertexArray(rectVAO);
 		glDisable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+		// // Make it so only the pixels without the value 1 pass the test
+		// glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		// // Disable modifying of the stencil buffer
+		// glStencilMask(0x00);
+		// // Disable the depth buffer
+		// glDisable(GL_DEPTH_TEST);
 		
-		outline.Draw(outliningProgram, camera);
+		// outline.Draw(outliningProgram, camera);
 
-		// Enable modifying of the stencil buffer
-		glStencilMask(0xFF);
-		// Clear stencil buffer
-		glStencilFunc(GL_ALWAYS, 0, 0xFF);
-		// Enable the depth buffer
-		glEnable(GL_DEPTH_TEST);
+		// // Enable modifying of the stencil buffer
+		// glStencilMask(0xFF);
+		// // Clear stencil buffer
+		// glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		// // Enable the depth buffer
+		// glEnable(GL_DEPTH_TEST);
 
-		glDisable(GL_CULL_FACE);
-		// grass.Draw(grassProgram, camera);
-		glEnable(GL_CULL_FACE);
+		// glDisable(GL_CULL_FACE);
+		// // grass.Draw(grassProgram, camera);
+		// glEnable(GL_CULL_FACE);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
