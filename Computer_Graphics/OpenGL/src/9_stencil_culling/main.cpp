@@ -56,7 +56,9 @@ int main()
 	Shader shaderProgram( (shaderDir + "default.vert").c_str(), (shaderDir + "default.frag").c_str(), (shaderDir + "default.geom").c_str());
 	Shader outliningProgram( (shaderDir + "outlining.vert").c_str(), (shaderDir + "outlining.frag").c_str(), nullptr);
 	Shader framebufferProgram( (shaderDir + "framebuffer.vert").c_str(), (shaderDir + "framebuffer.frag").c_str(), nullptr);
-	
+	Shader normalShaderProgram((shaderDir + "default.vert").c_str(), (shaderDir + "normal.frag").c_str(), (shaderDir + "normal.geom").c_str());
+
+
 	//related light
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -175,6 +177,7 @@ int main()
 		glStencilMask(0xFF);
 		// Draw the normal model
 		model.Draw(shaderProgram, camera);
+		model.Draw(normalShaderProgram, camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		framebufferProgram.Activate();
