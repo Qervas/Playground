@@ -12,11 +12,7 @@
 #include "3_shader_texture_3D/VAO.h"
 #include "3_shader_texture_3D/VBO.h"
 #include "3_shader_texture_3D/EBO.h"
-// #include " shaderClass.h"
-// #include "Texture.h"
-// #include "VAO.h"
-// #include "VBO.h"
-// #include "EBO.h"
+
 
 #include<filesystem>
 namespace fs = std::filesystem;
@@ -124,7 +120,7 @@ int main(){
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
-			rotation += 0.5f;
+			rotation += 0.005f;
 			prevTime = crntTime;
 		}
 
@@ -135,7 +131,7 @@ int main(){
 
 		// Assigns different transformations to each matrix
 		model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -1.0f));
+		view = glm::translate(view, glm::vec3(0.0f, -0.2f, -1.0f));
 		proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
 
 		// Outputs the matrices into the Vertex Shader
