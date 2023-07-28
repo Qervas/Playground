@@ -1,3 +1,26 @@
+# Multithreading demo
+
+> (>=C++17) Search targeting string from all readable files under a directory. Then output where the matched strings are in those files. e.g.(row number, column number)
+
+<table>
+  <tr>
+     <td>WinAPI console</td>
+     <td>WinAPI output</td>
+  </tr>
+  <tr>
+    <td><img src="./Figures/winAPI-console.png" width=90% ></td>
+    <td><img src="./Figures/winAPI-output.png" ></td>
+  </tr>
+    <tr>
+     <td>POSIX console</td>
+     <td>POSIX output</td>
+  </tr>
+  <tr>
+    <td><img src="./Figures/POSIX-console.png" width=90% ></td>
+    <td><img src="./Figures/POSIX-output.png" ></td>
+  </tr>
+ </table>
+
 # WinAPI Version Readme
 
 _Tips: The more files in the directory and the smaller each file, the faster the program runs._
@@ -61,15 +84,12 @@ Writer:
 **Attention**: For now, it only supports non-format files like `txt/md/c/cpp/h/java/python` file(aka. all non format text files). The "Demo" and "Auxilary" folders only for example learning.
 
 > Thanks to Varteta Learning Platform tutorials on Youtube https://www.youtube.com/channel/UC7-Ourn_kpT-EnvVoCxTgsw
->
-
 
 # POSIX Version Readme
 
-
 The general methods are similar to WinAPI version that contains 3 created threads as `Scanner`, `Reader`, `Writer` and their duties are same as well: to scan files that meet the extensions requirements, to read files line by line and to match substrings with the regular expression pattern, to print output to a specific file.
 
-Implemented with 
+Implemented with
 
 ```c++
 #include<regex>
@@ -77,6 +97,5 @@ Implemented with
 #include<phtread.h>
 
 ```
-
 
 **Attention**: It supports all sorts of file extensions as you name it. Of course it's meaningless to search binary files without conversion or to search compressed files directory, inasmuch as a set of garbled character is the only thing it'd get.
