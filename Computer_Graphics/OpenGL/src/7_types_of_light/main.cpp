@@ -76,7 +76,6 @@ int main(){
 	// Tell GLFW we are using the CORE profile
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// Create a GLFWwindow object of 800 by 800 pixels, naming it "My Triangle"
 	GLFWwindow* window = glfwCreateWindow(width, height, "Edit fragment shader to try different types of light", NULL, NULL);
 	// Error check if the window fails to create
 	if (window == NULL){
@@ -90,7 +89,6 @@ int main(){
 	//Load GLAD so it configures OpenGL
 	gladLoadGL();
 	// Specify the viewport of OpenGL in the Window
-	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
 	glViewport(0, 0, width, height);
 
 	
