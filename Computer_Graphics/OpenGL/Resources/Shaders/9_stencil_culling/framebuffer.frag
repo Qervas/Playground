@@ -20,14 +20,14 @@ vec2 offsets[9] = vec2[](
 	vec2(offset_x, -offset_y) //bottom right
 
 );
-//edge detection
+// edge detection
 float kernel[9] = float[](
 	1.0f, 1.0f, 1.0f,
 	1.0f, -8.0f, 1.0f,
 	1.0f, 1.0f, 1.0f
 );
 
-// //Guassian blur
+// // Guassian blur
 // float kernel[9] = float[](
 // 	1.0f / 16, 2.0f / 16, 1.0f / 16,
 // 	2.0f / 16, 4.0f / 16, 2.0f / 16,
