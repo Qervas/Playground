@@ -2,7 +2,7 @@
 #define TEXTURE_CLASS_H
 
 #include <glad.h>
-#include <stb/stb_image.h>
+
 
 #include "shaderClass.h"
 

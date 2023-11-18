@@ -1,6 +1,7 @@
 // #include"Texture.h"
 #include "3_shader_texture_3D/Texture.h"
-
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
 Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType)
 {
 	// Assigns the type of the texture ot the texture object
@@ -32,7 +33,18 @@ Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, 
 	// glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, flatColor);
 
 	// Assigns the image to the OpenGL Texture object
-	glTexImage2D(texType, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+	switch(numColCh) {
+	    case 1: format = GL_RED; break;
+	    case 3: format = GL_RGB; break;
+	    case 4: format = GL_RGBA; break;
+	    default: 
+	        // Handle invalid number of color channels
+	        stbi_image_free(bytes);
+	        return;
+	}
+
+	glTexImage2D(texType, 0, format, widthImg, heightImg, 0, format, pixelType, bytes);
+
 	// Generates MipMaps
 	glGenerateMipmap(texType);
 
