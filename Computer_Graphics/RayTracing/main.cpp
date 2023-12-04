@@ -39,7 +39,8 @@ int main() {
 	
     cam.aspect_ratio = 16.0 / 9.0;
     cam.image_width  = 2000;
-	cam.samples_per_pixel = 100;
+	cam.samples_per_pixel = 10;
+	cam.max_depth = 10;
 	cam.render(world);
     // Close the file when done
     ppmFile.close();
