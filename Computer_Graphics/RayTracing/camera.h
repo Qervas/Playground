@@ -71,21 +71,20 @@ private:
             center - vec3(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
         pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
     }
-
 	color ray_color(const ray& r, int depth, const hittable& world) const{
 		hit_record rec;
 
 		if(depth <= 0){return color(0,0,0);}
 
 		if(world.hit(r, interval(0.001, infinity), rec)){
-			vec3 direction = random_on_hemisphere(rec.normal);
+			vec3 direction = rec.normal + random_unit_vector();
 			// return 0.5 * (rec.normal + color(1.0,1.0,1.0));
 			return 0.5 * ray_color(ray(rec.p, direction), depth-1, world);
 		}
 
         vec3 unit_direction = unit_vector(r.direction());
-        auto a = 0.5*(unit_direction.y() + 1.0);
-        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+        auto a = 0.5*(unit_direction.y() + 1.0);//blue sky
+    return (1.0-a)*color(1.0, 1.0, 1.0) + a*color( 0.2, 0.6, 1.0);
 	}
 
 	ray get_ray(int i, int j) const{
