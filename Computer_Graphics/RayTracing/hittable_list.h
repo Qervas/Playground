@@ -28,7 +28,7 @@ public:
 		for(const auto& obj: _objects){
 			if(obj->hit(r, interval(ray_t.min, closest_so_far), tmp_rec)){//set tmax as closest plane
 				is_hit_anything = true;
-				closest_so_far = tmp_rec.t;
+				closest_so_far = tmp_rec._t;
 				rec = tmp_rec;
 			}
 		}

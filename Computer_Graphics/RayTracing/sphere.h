@@ -5,7 +5,10 @@
 
 class sphere: public hittable{
 public:
-	sphere(point3 center, double radius): _center(center), _radius(radius){}
+	sphere() = default;
+	~sphere() = default;
+	sphere(point3 center, double radius, shared_ptr<material> mat)
+			: _center(center), _radius(radius), _mat(mat){}
 
 	virtual bool hit(const ray& r, interval&& ray_t, hit_record& rec) const override{
 		vec3 oc = r.origin() - _center;
@@ -25,10 +28,12 @@ public:
 				return false;
 			}
 		}
-		rec.t = root;
-		rec.p = r.at(rec.t);
-		vec3 outward_normal = (rec.p - _center) / _radius;
+		rec._t = root;
+		rec._p = r.at(rec._t);
+		vec3 outward_normal = (rec._p - _center) / _radius;
 		rec.set_face_normal(r, outward_normal);
+		rec._mat = _mat;
+
 
 		return true;
 
@@ -37,4 +42,5 @@ public:
 private:
 	point3 _center;
 	double _radius;
+	shared_ptr<material> _mat;
 };
