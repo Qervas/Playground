@@ -1,21 +1,23 @@
 #pragma once
 
 #include "ray.h"
+#include "helper.h"
+class material;
 
 class hit_record{
 public:
-	point3 p;
-	vec3 normal;
-	double t;
-	bool front_face;
-
+	point3 _p;
+	vec3 _normal;
+	double _t;
+	bool _front_face;
+	shared_ptr<material> _mat;
 	/*
 	outward_normal should be an unit vector
 	*/
 	void set_face_normal(const ray& r, const vec3& outward_normal){
 		//hit record normal vector
-		front_face = dot(r.direction(), outward_normal) < 0;
-		normal = front_face ? outward_normal : -outward_normal;
+		_front_face = dot(r.direction(), outward_normal) < 0;
+		_normal = _front_face ? outward_normal : -outward_normal;
 	}
 };
 
