@@ -2,7 +2,6 @@
 #include<glad.h>
 #include<math.h>
 #include<GLFW/glfw3.h>
-#include<stb/stb_image.h>
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
@@ -55,8 +54,8 @@ int main(){
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// Create a GLFWwindow object of 800 by 800 pixels, naming it "My Triangle"
-	GLFWwindow* window = glfwCreateWindow(width, height, "My Triangle", NULL, NULL);
+	
+	GLFWwindow* window = glfwCreateWindow(width, height, "Rotating Pyramid", NULL, NULL);
 	// Error check if the window fails to create
 	if (window == NULL){
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -120,7 +119,7 @@ int main(){
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
-			rotation += 0.005f;
+			rotation += 0.05f;
 			prevTime = crntTime;
 		}
 
